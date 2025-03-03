@@ -1,12 +1,12 @@
 import streamlit as st
 import time
+import os
+import config
 from utils import (
     check_password,
     check_if_interview_completed,
     save_interview_data,
 )
-import os
-import config
 
 # Load API library
 if "gpt" in config.MODEL.lower():
