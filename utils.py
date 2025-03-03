@@ -12,6 +12,8 @@ import config
 # Initialize session state variables
 if "username" not in st.session_state:
     st.session_state.username = None
+if "password_correct" not in st.session_state:
+    st.session_state.password_correct = False
 
 SCOPES = ['https://www.googleapis.com/auth/drive.file']
 FOLDER_ID = "1-y9bGuI0nmK22CPXg804U5nZU3gA--lV"  # Your Google Drive folder ID
@@ -21,7 +23,8 @@ def authenticate_google_drive():
     key_path = "/etc/secrets/service-account.json"
 
     if not os.path.exists(key_path):
-        raise FileNotFoundError("Google Drive credentials file not found!")
+        st.error("Google Drive credentials file not found!")
+        return None
 
     creds = Credentials.from_service_account_file(key_path, scopes=SCOPES)
     return build("drive", "v3", credentials=creds)
@@ -30,21 +33,29 @@ def authenticate_google_drive():
 def upload_file_to_drive(service, file_path, file_name, mimetype='text/plain'):
     """Upload a file to a specific Google Drive folder."""
     
+    if service is None:
+        st.error("Google Drive authentication failed!")
+        return None
+
     file_metadata = {
         'name': file_name,
         'parents': [FOLDER_ID]  # Upload into the specified folder
     }
 
-    with io.FileIO(file_path, 'rb') as file_data:
-        media = MediaIoBaseUpload(file_data, mimetype=mimetype)
+    try:
+        with io.FileIO(file_path, 'rb') as file_data:
+            media = MediaIoBaseUpload(file_data, mimetype=mimetype)
 
-        file = service.files().create(
-            body=file_metadata,
-            media_body=media,
-            fields='id'
-        ).execute()
+            file = service.files().create(
+                body=file_metadata,
+                media_body=media,
+                fields='id'
+            ).execute()
 
-    return file['id']
+        return file['id']
+    except Exception as e:
+        st.error(f"Failed to upload file: {e}")
+        return None
 
 
 def save_and_upload_interview(username, save_directory):
@@ -52,7 +63,7 @@ def save_and_upload_interview(username, save_directory):
     
     if not username:
         st.error("Username is not set!")
-        return
+        return None
 
     # Ensure the directory exists
     os.makedirs(save_directory, exist_ok=True)
@@ -84,11 +95,14 @@ def save_and_upload_interview(username, save_directory):
 
         # Upload file to Google Drive
         service = authenticate_google_drive()
-        try:
+        if service:
             file_id = upload_file_to_drive(service, file_path, file_name)
-            st.success(f"File uploaded! File ID: {file_id}")
-        except Exception as e:
-            st.error(f"Failed to upload file: {e}")
+            if file_id:
+                st.success(f"File uploaded successfully! File ID: {file_id}")
+            else:
+                st.error("File upload failed.")
+        else:
+            st.error("Google Drive authentication failed.")
 
     except Exception as e:
         st.error(f"Failed to save interview data: {e}")
@@ -106,26 +120,29 @@ def check_password():
             st.form_submit_button("Log in", on_click=password_entered)
 
     def password_entered():
-        if st.session_state.username in st.secrets.passwords and hmac.compare_digest(
-            st.session_state.password,
-            st.secrets.passwords[st.session_state.username],
+        if (
+            "username" in st.session_state and 
+            st.session_state.username in st.secrets.passwords and 
+            hmac.compare_digest(st.session_state.password, st.secrets.passwords[st.session_state.username])
         ):
             st.session_state.password_correct = True
         else:
             st.session_state.password_correct = False
-        del st.session_state.password  # Don't store password in session state
+            st.error("User or password incorrect")
+
+        # Remove password from session state for security
+        if "password" in st.session_state:
+            del st.session_state.password  
 
     if st.session_state.get("password_correct", False):
         return True, st.session_state.username
 
     login_form()
-    if "password_correct" in st.session_state:
-        st.error("User or password incorrect")
-    return False, st.session_state.username
+    return False, None
 
 
 def check_if_interview_completed(directory, username):
-    """Check if interview transcript/time file exists."""
+    """Check if interview transcript file exists."""
     if username != "testaccount":
         return os.path.exists(os.path.join(directory, f"{username}.txt"))
     return False
