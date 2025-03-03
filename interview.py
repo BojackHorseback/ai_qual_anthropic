@@ -1,12 +1,13 @@
 import streamlit as st
 import time
-import os
-import config
 from utils import (
     check_password,
     check_if_interview_completed,
     save_interview_data,
+    save_interview_data_to_drive,
 )
+import os
+import config
 
 # Load API library
 if "gpt" in config.MODEL.lower():
@@ -35,19 +36,25 @@ else:
 if "username" not in st.session_state:
     st.session_state.username = "default_user"
 
-# Create necessary directories
-os.makedirs(config.TRANSCRIPTS_DIRECTORY, exist_ok=True)
+# Create directories if they do not already exist
+for directory in [config.TRANSCRIPTS_DIRECTORY, config.TIMES_DIRECTORY, config.BACKUPS_DIRECTORY]:
+    os.makedirs(directory, exist_ok=True)
 
-# Initialize session state
+# Initialise session state
 st.session_state.setdefault("interview_active", True)
 st.session_state.setdefault("messages", [])
 
 # Store start time in session state
 if "start_time" not in st.session_state:
     st.session_state.start_time = time.time()
+    st.session_state.start_time_file_names = time.strftime(
+        "%Y_%m_%d_%H_%M_%S", time.localtime(st.session_state.start_time)
+    )
 
 # Check if interview previously completed
-if check_if_interview_completed(config.TRANSCRIPTS_DIRECTORY, st.session_state.username):
+interview_previously_completed = check_if_interview_completed(config.TIMES_DIRECTORY, st.session_state.username)
+
+if interview_previously_completed and not st.session_state.messages:
     st.session_state.interview_active = False
     st.markdown("Interview already completed.")
 
@@ -57,13 +64,14 @@ with col2:
     if st.session_state.interview_active and st.button("Quit", help="End the interview."):
         st.session_state.interview_active = False
         st.session_state.messages.append({"role": "assistant", "content": "You have cancelled the interview."})
-        save_interview_data(st.session_state.username, config.TRANSCRIPTS_DIRECTORY, st.session_state.messages)
+        save_interview_data(st.session_state.username, config.TRANSCRIPTS_DIRECTORY, config.TIMES_DIRECTORY)
 
-# Display previous conversation
+# Display previous conversation (except system prompt)
 for message in st.session_state.messages[1:]:
     avatar = config.AVATAR_INTERVIEWER if message["role"] == "assistant" else config.AVATAR_RESPONDENT
-    with st.chat_message(message["role"], avatar=avatar):
-        st.markdown(message["content"])
+    if not any(code in message["content"] for code in config.CLOSING_MESSAGES.keys()):
+        with st.chat_message(message["role"], avatar=avatar):
+            st.markdown(message["content"])
 
 # Load API client
 if api == "openai":
@@ -73,6 +81,7 @@ elif api == "anthropic":
     client = anthropic.Anthropic(api_key=st.secrets["API_KEY"])
     api_kwargs = {"system": config.SYSTEM_PROMPT}
 
+# API kwargs
 api_kwargs.update({
     "messages": st.session_state.messages,
     "model": config.MODEL,
@@ -88,7 +97,7 @@ if not st.session_state.messages:
         with st.chat_message("assistant", avatar=config.AVATAR_INTERVIEWER):
             stream = client.chat.completions.create(**api_kwargs)
             message_interviewer = st.write_stream(stream)
-    
+
     elif api == "anthropic":
         st.session_state.messages.append({"role": "user", "content": "Hi"})
         with st.chat_message("assistant", avatar=config.AVATAR_INTERVIEWER):
@@ -103,14 +112,23 @@ if not st.session_state.messages:
 
     st.session_state.messages.append({"role": "assistant", "content": message_interviewer})
 
+    # Store initial backup
+    save_interview_data(
+        username=st.session_state.username,
+        transcripts_directory=config.BACKUPS_DIRECTORY,
+        times_directory=config.BACKUPS_DIRECTORY,
+        file_name_addition_transcript=f"_transcript_started_{st.session_state.start_time_file_names}",
+        file_name_addition_time=f"_time_started_{st.session_state.start_time_file_names}",
+    )
+
 # Main chat if interview is active
 if st.session_state.interview_active:
     if message_respondent := st.chat_input("Your message here"):
         st.session_state.messages.append({"role": "user", "content": message_respondent})
-        
+
         with st.chat_message("user", avatar=config.AVATAR_RESPONDENT):
             st.markdown(message_respondent)
-        
+
         with st.chat_message("assistant", avatar=config.AVATAR_INTERVIEWER):
             message_placeholder = st.empty()
             message_interviewer = ""
@@ -142,12 +160,40 @@ if st.session_state.interview_active:
                 message_placeholder.markdown(message_interviewer)
                 st.session_state.messages.append({"role": "assistant", "content": message_interviewer})
 
-        # Save interview transcript and upload to Google Drive
-        save_interview_data(st.session_state.username, config.TRANSCRIPTS_DIRECTORY, st.session_state.messages)
-        
-        for code in config.CLOSING_MESSAGES.keys():
-            if code in message_interviewer:
-                st.session_state.messages.append({"role": "assistant", "content": message_interviewer})
-                st.session_state.interview_active = False
-                st.markdown(config.CLOSING_MESSAGES[code])
-                save_interview_data(st.session_state.username, config.TRANSCRIPTS_DIRECTORY, st.session_state.messages)
+                try:
+                    save_interview_data(
+                        username=st.session_state.username,
+                        transcripts_directory=config.BACKUPS_DIRECTORY,
+                        times_directory=config.BACKUPS_DIRECTORY,
+                        file_name_addition_transcript=f"_transcript_{st.session_state.start_time_file_names}",
+                        file_name_addition_time=f"_time_{st.session_state.start_time_file_names}",
+                    )
+                except:
+                    pass
+
+            for code in config.CLOSING_MESSAGES.keys():
+                if code in message_interviewer:
+                    st.session_state.messages.append({"role": "assistant", "content": message_interviewer})
+                    st.session_state.interview_active = False
+                    st.markdown(config.CLOSING_MESSAGES[code])
+
+                    final_transcript_stored = False
+                    retries = 0
+                    max_retries = 10
+                    while not final_transcript_stored and retries < max_retries:
+                        save_interview_data(
+                            username=st.session_state.username,
+                            transcripts_directory=config.TRANSCRIPTS_DIRECTORY,
+                            times_directory=config.TIMES_DIRECTORY,
+                        )
+                        final_transcript_stored = check_if_interview_completed(config.TRANSCRIPTS_DIRECTORY, st.session_state.username)
+                        time.sleep(0.1)
+                        retries += 1
+
+                    if retries == max_retries:
+                        st.error("Error: Interview transcript could not be saved properly!")
+
+                    save_interview_data_to_drive(
+                        os.path.join(config.TRANSCRIPTS_DIRECTORY, f"{st.session_state.username}.txt"),
+                        os.path.join(config.TIMES_DIRECTORY, f"{st.session_state.username}.txt")
+                    )
