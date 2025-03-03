@@ -48,90 +48,90 @@ def authenticate_google_drive():
 
     return file['id']
 
-#Attempt to combine save & upload functions on 3/2
-def save_and_upload_interview(username, save_directory):
-    """Save interview transcript & timing data in one file, then upload to Google Drive."""
+#Attempt to combine save & upload functions on 3/2; commented out after failure same day
+# def save_and_upload_interview(username, save_directory):
+#    """Save interview transcript & timing data in one file, then upload to Google Drive."""
     
-    if not username:
-        st.error("Username is not set!")
-        return
-
-    # Ensure the directory exists
-    os.makedirs(save_directory, exist_ok=True)
-
-    # Create a unique filename with the interview completion time
-    timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
-    file_name = f"{username}_{timestamp}.txt"
-    file_path = os.path.join(save_directory, file_name)
-
-    try:
-        # Open the file and write transcript + timing data
-        with open(file_path, "w") as file:
-            # Store chat transcript
-            file.write("### Interview Transcript ###\n")
-            if "messages" in st.session_state and st.session_state.messages:
-                for message in st.session_state.messages:
-                    file.write(f"{message['role']}: {message['content']}\n")
-            else:
-                file.write("No messages recorded.\n")
-
-            # Store interview start time and duration
-            if "start_time" in st.session_state:
-                duration = (time.time() - st.session_state.start_time) / 60
-                file.write("\n### Interview Timing ###\n")
-                file.write(f"Start time (UTC): {time.strftime('%d/%m/%Y %H:%M:%S', time.localtime(st.session_state.start_time))}\n")
-                file.write(f"Interview duration (minutes): {duration:.2f} minutes\n")
-            else:
-                file.write("\nStart time not available.\n")
-
-        # Upload file to Google Drive
-        service = authenticate_google_drive()
-        try:
-            file_id = upload_file_to_drive(service, file_path, file_name)
-            st.success(f"File uploaded! File ID: {file_id}")
-        except Exception as e:
-            st.error(f"Failed to upload file: {e}")
-
-    except Exception as e:
-        st.error(f"Failed to save interview data: {e}")
-        return None
-
-    return file_path
-
-# def save_interview_data_to_drive(transcript_path, time_path):
-#    """Save interview transcript & timing data to Google Drive."""
-    
-#    if st.session_state.username is None:
+#    if not username:
 #        st.error("Username is not set!")
 #        return
 
-#    service = authenticate_google_drive()  # Authenticate Drive API
+    # Ensure the directory exists
+#    os.makedirs(save_directory, exist_ok=True)
+
+    # Create a unique filename with the interview completion time
+#    timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
+#    file_name = f"{username}_{timestamp}.txt"
+#    file_path = os.path.join(save_directory, file_name)
 
 #    try:
-#        transcript_id = upload_file_to_drive(service, transcript_path, os.path.basename(transcript_path))
-#        time_id = upload_file_to_drive(service, time_path, os.path.basename(time_path))
-#        st.success(f"Files uploaded! Transcript ID: {transcript_id}, Time ID: {time_id}")
+        # Open the file and write transcript + timing data
+#        with open(file_path, "w") as file:
+            # Store chat transcript
+#            file.write("### Interview Transcript ###\n")
+#            if "messages" in st.session_state and st.session_state.messages:
+#                for message in st.session_state.messages:
+#                    file.write(f"{message['role']}: {message['content']}\n")
+#            else:
+#                file.write("No messages recorded.\n")
+
+            # Store interview start time and duration
+#            if "start_time" in st.session_state:
+#                duration = (time.time() - st.session_state.start_time) / 60
+#                file.write("\n### Interview Timing ###\n")
+#                file.write(f"Start time (UTC): {time.strftime('%d/%m/%Y %H:%M:%S', time.localtime(st.session_state.start_time))}\n")
+#                file.write(f"Interview duration (minutes): {duration:.2f} minutes\n")
+#            else:
+#                file.write("\nStart time not available.\n")
+
+        # Upload file to Google Drive
+#        service = authenticate_google_drive()
+#        try:
+#            file_id = upload_file_to_drive(service, file_path, file_name)
+#            st.success(f"File uploaded! File ID: {file_id}")
+#        except Exception as e:
+#            st.error(f"Failed to upload file: {e}")
+
 #    except Exception as e:
-#        st.error(f"Failed to upload files: {e}")
+#        st.error(f"Failed to save interview data: {e}")
+#        return None
+
+#    return file_path
+
+ def save_interview_data_to_drive(transcript_path, time_path):
+    """Save interview transcript & timing data to Google Drive."""
+    
+    if st.session_state.username is None:
+        st.error("Username is not set!")
+        return
+
+    service = authenticate_google_drive()  # Authenticate Drive API
+
+    try:
+        transcript_id = upload_file_to_drive(service, transcript_path, os.path.basename(transcript_path))
+        time_id = upload_file_to_drive(service, time_path, os.path.basename(time_path))
+        st.success(f"Files uploaded! Transcript ID: {transcript_id}, Time ID: {time_id}")
+    except Exception as e:
+        st.error(f"Failed to upload files: {e}")
 
 
-# def save_interview_data(username, transcripts_directory, times_directory, file_name_addition_transcript="", file_name_addition_time=""):
-#    """Write interview data to disk."""
-#    transcript_file = os.path.join(transcripts_directory, f"{username}{file_name_addition_transcript}.txt")
-#    time_file = os.path.join(times_directory, f"{username}{file_name_addition_time}.txt")
+ def save_interview_data(username, transcripts_directory, times_directory, file_name_addition_transcript="", file_name_addition_time=""):
+    """Write interview data to disk."""
+    transcript_file = os.path.join(transcripts_directory, f"{username}{file_name_addition_transcript}.txt")
+    time_file = os.path.join(times_directory, f"{username}{file_name_addition_time}.txt")
 
     # Store chat transcript
-#    with open(transcript_file, "w") as t:
-#        for message in st.session_state.messages:
-#            t.write(f"{message['role']}: {message['content']}\n")
+    with open(transcript_file, "w") as t:
+        for message in st.session_state.messages:
+            t.write(f"{message['role']}: {message['content']}\n")
 
     # Store interview start time and duration
-#    with open(time_file, "w") as d:
-#        duration = (time.time() - st.session_state.start_time) / 60
-#        d.write(f"Start time (UTC): {time.strftime('%d/%m/%Y %H:%M:%S', time.localtime(st.session_state.start_time))}\n")
-#        d.write(f"Interview duration (minutes): {duration:.2f}")
+    with open(time_file, "w") as d:
+        duration = (time.time() - st.session_state.start_time) / 60
+        d.write(f"Start time (UTC): {time.strftime('%d/%m/%Y %H:%M:%S', time.localtime(st.session_state.start_time))}\n")
+        d.write(f"Interview duration (minutes): {duration:.2f}")
 
-#    return transcript_file, time_file #this is where it saves two files; need to figure out how to combine into a single file or use 
+    return transcript_file, time_file #this is where it saves two files; need to figure out how to combine into a single file or use 
 
 
 def check_password():
