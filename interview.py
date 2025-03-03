@@ -63,12 +63,12 @@ col1, col2 = st.columns([0.85, 0.15])
 with col2:
     if st.session_state.interview_active and st.button("Quit", help="End the interview."):
         st.session_state.interview_active = False
-        st.session_state.messages.append({"role": "Claude", "content": "You have cancelled the interview."})
+        st.session_state.messages.append({"role": "assistant", "content": "You have cancelled the interview."})
         save_interview_data(st.session_state.username, config.TRANSCRIPTS_DIRECTORY, config.TIMES_DIRECTORY)
 
 # Display previous conversation (except system prompt)
 for message in st.session_state.messages[1:]:
-    avatar = config.AVATAR_INTERVIEWER if message["role"] == "Claude" else config.AVATAR_RESPONDENT
+    avatar = config.AVATAR_INTERVIEWER if message["role"] == "assistant" else config.AVATAR_RESPONDENT
     if not any(code in message["content"] for code in config.CLOSING_MESSAGES.keys()):
         with st.chat_message(message["role"], avatar=avatar):
             st.markdown(message["content"])
@@ -94,13 +94,13 @@ if config.TEMPERATURE is not None:
 if not st.session_state.messages:
     if api == "openai":
         st.session_state.messages.append({"role": "system", "content": config.SYSTEM_PROMPT})
-        with st.chat_message("Claude", avatar=config.AVATAR_INTERVIEWER):
+        with st.chat_message("assistant", avatar=config.AVATAR_INTERVIEWER):
             stream = client.chat.completions.create(**api_kwargs)
             message_interviewer = st.write_stream(stream)
 
     elif api == "anthropic":
         st.session_state.messages.append({"role": "user", "content": "Hi"})
-        with st.chat_message("Claude", avatar=config.AVATAR_INTERVIEWER):
+        with st.chat_message("assistant", avatar=config.AVATAR_INTERVIEWER):
             message_placeholder = st.empty()
             message_interviewer = ""
             with client.messages.stream(**api_kwargs) as stream:
@@ -110,7 +110,7 @@ if not st.session_state.messages:
                     message_placeholder.markdown(message_interviewer + "▌")
             message_placeholder.markdown(message_interviewer)
 
-    st.session_state.messages.append({"role": "Claude", "content": message_interviewer})
+    st.session_state.messages.append({"role": "assistant", "content": message_interviewer})
 
     # Store initial backup
     save_interview_data(
@@ -129,7 +129,7 @@ if st.session_state.interview_active:
         with st.chat_message("user", avatar=config.AVATAR_RESPONDENT):
             st.markdown(message_respondent)
 
-        with st.chat_message("Claude", avatar=config.AVATAR_INTERVIEWER):
+        with st.chat_message("assistant", avatar=config.AVATAR_INTERVIEWER):
             message_placeholder = st.empty()
             message_interviewer = ""
 
@@ -158,7 +158,7 @@ if st.session_state.interview_active:
 
             if not any(code in message_interviewer for code in config.CLOSING_MESSAGES.keys()):
                 message_placeholder.markdown(message_interviewer)
-                st.session_state.messages.append({"role": "Claude", "content": message_interviewer})
+                st.session_state.messages.append({"role": "assistant", "content": message_interviewer})
 
                 try:
                     save_interview_data(
@@ -173,7 +173,7 @@ if st.session_state.interview_active:
 
             for code in config.CLOSING_MESSAGES.keys():
                 if code in message_interviewer:
-                    st.session_state.messages.append({"role": "Claude", "content": message_interviewer})
+                    st.session_state.messages.append({"role": "assistant", "content": message_interviewer})
                     st.session_state.interview_active = False
                     st.markdown(config.CLOSING_MESSAGES[code])
 
