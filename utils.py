@@ -65,23 +65,27 @@ def save_interview_data_to_drive(transcript_path, time_path):
         st.error(f"Failed to upload files: {e}")
 
 
-def save_interview_data(username, transcripts_directory, times_directory, file_name_addition_transcript="", file_name_addition_time=""):
-    """Write interview data to disk."""
-    transcript_file = os.path.join(transcripts_directory, f"{username}{file_name_addition_transcript}.txt")
-    time_file = os.path.join(times_directory, f"{username}{file_name_addition_time}.txt")
+def save_interview_data(username, save_directory, file_name_addition=""):
+    """Write interview data (transcript + time) into a single file."""
+    from datetime import datetime
 
-    # Store chat transcript
-    with open(transcript_file, "w") as t:
+    timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
+    file_name = f"{username}_{file_name_addition}_{timestamp}.txt"
+    file_path = os.path.join(save_directory, file_name)
+
+    with open(file_path, "w") as file:
+        # Store chat transcript
+        file.write("### Interview Transcript ###\n")
         for message in st.session_state.messages:
-            t.write(f"{message['role']}: {message['content']}\n")
+            file.write(f"{message['role']}: {message['content']}\n")
 
-    # Store interview start time and duration
-    with open(time_file, "w") as d:
+        # Store interview start time and duration
         duration = (time.time() - st.session_state.start_time) / 60
-        d.write(f"Start time (UTC): {time.strftime('%d/%m/%Y %H:%M:%S', time.localtime(st.session_state.start_time))}\n")
-        d.write(f"Interview duration (minutes): {duration:.2f}")
+        file.write("\n### Interview Timing ###\n")
+        file.write(f"Start time (UTC): {time.strftime('%d/%m/%Y %H:%M:%S', time.localtime(st.session_state.start_time))}\n")
+        file.write(f"Interview duration (minutes): {duration:.2f}")
 
-    return transcript_file, time_file
+    return file_path
 
 
 def check_password():
