@@ -83,12 +83,24 @@ if config.TEMPERATURE is not None:
 
 # Initialize first system message if history is empty
 if not st.session_state.messages:
-    st.session_state.messages.append({"role": "system", "content": config.SYSTEM_PROMPT})
+    if api == "openai":
+        st.session_state.messages.append({"role": "system", "content": config.SYSTEM_PROMPT})
+        with st.chat_message("assistant", avatar=config.AVATAR_INTERVIEWER):
+            stream = client.chat.completions.create(**api_kwargs)
+            message_interviewer = st.write_stream(stream)
     
-    with st.chat_message("assistant", avatar=config.AVATAR_INTERVIEWER):
-        stream = client.chat.completions.create(**api_kwargs)
-        message_interviewer = st.write_stream(stream)
-    
+    elif api == "anthropic":
+        st.session_state.messages.append({"role": "user", "content": "Hi"})
+        with st.chat_message("assistant", avatar=config.AVATAR_INTERVIEWER):
+            message_placeholder = st.empty()
+            message_interviewer = ""
+            with client.messages.stream(**api_kwargs) as stream:
+                for text_delta in stream.text_stream:
+                    if text_delta:
+                        message_interviewer += text_delta
+                    message_placeholder.markdown(message_interviewer + "▌")
+            message_placeholder.markdown(message_interviewer)
+
     st.session_state.messages.append({"role": "assistant", "content": message_interviewer})
 
 # Main chat if interview is active
@@ -102,18 +114,30 @@ if st.session_state.interview_active:
         with st.chat_message("assistant", avatar=config.AVATAR_INTERVIEWER):
             message_placeholder = st.empty()
             message_interviewer = ""
-            
-            stream = client.chat.completions.create(**api_kwargs)
-            for message in stream:
-                text_delta = message.choices[0].delta.content
-                if text_delta:
-                    message_interviewer += text_delta
-                if len(message_interviewer) > 5:
-                    message_placeholder.markdown(message_interviewer + "▌")
-                if any(code in message_interviewer for code in config.CLOSING_MESSAGES.keys()):
-                    message_placeholder.empty()
-                    break
-            
+
+            if api == "openai":
+                stream = client.chat.completions.create(**api_kwargs)
+                for message in stream:
+                    text_delta = message.choices[0].delta.content
+                    if text_delta:
+                        message_interviewer += text_delta
+                    if len(message_interviewer) > 5:
+                        message_placeholder.markdown(message_interviewer + "▌")
+                    if any(code in message_interviewer for code in config.CLOSING_MESSAGES.keys()):
+                        message_placeholder.empty()
+                        break
+
+            elif api == "anthropic":
+                with client.messages.stream(**api_kwargs) as stream:
+                    for text_delta in stream.text_stream:
+                        if text_delta:
+                            message_interviewer += text_delta
+                        if len(message_interviewer) > 5:
+                            message_placeholder.markdown(message_interviewer + "▌")
+                        if any(code in message_interviewer for code in config.CLOSING_MESSAGES.keys()):
+                            message_placeholder.empty()
+                            break
+
             if not any(code in message_interviewer for code in config.CLOSING_MESSAGES.keys()):
                 message_placeholder.markdown(message_interviewer)
                 st.session_state.messages.append({"role": "assistant", "content": message_interviewer})
