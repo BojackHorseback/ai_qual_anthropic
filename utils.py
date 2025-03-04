@@ -42,7 +42,7 @@ def upload_file_to_drive(service, file_path, file_name, mimetype='text/plain'):
     return file['id']
 
 
-def save_interview_data(username, transcripts_directory): #updated to transcripts_directory which is defined in other files
+def save_interview_data_to_drive(username, transcripts_directory): #updated to transcripts_directory which is defined in other files
     """Save interview transcript and timing data in a single file and upload to Google Drive."""
     
     if not username: #In functional code, this is: if st.session_state.username is None:
