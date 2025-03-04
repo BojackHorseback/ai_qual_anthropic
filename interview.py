@@ -3,7 +3,6 @@ import time
 from utils import (
     check_password,
     check_if_interview_completed,
-    save_interview_data,
     save_interview_data_to_drive,
 )
 import os
