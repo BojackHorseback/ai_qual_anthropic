@@ -59,10 +59,10 @@ def save_interview_data_to_drive(transcript_path, time_path):
         st.error(f"Failed to upload files: {e}")
 
 
-def save_interview_data(username, transcripts_directory, times_directory, file_name_addition_transcript="", file_name_addition_time=""):
+def save_interview_data(username, transcripts_directory, times_directory, file_name_addition_transcript="", file_name_addition_time=""): 
     """Write interview data to disk."""
     transcript_file = os.path.join(transcripts_directory, f"{username}{file_name_addition_transcript}.txt")
-    time_file = os.path.join(times_directory, f"{username}{file_name_addition_time}.txt")
+    time_file = os.path.join(times_directory, f"{username}{file_name_addition_time}.txt") #I think the separate time file is coming from here. Time directory is also created in another file and referenced several places throughout repository.
 
     # Store chat transcript
     with open(transcript_file, "w") as t:
