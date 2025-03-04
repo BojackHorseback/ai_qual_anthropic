@@ -115,7 +115,6 @@ if not st.session_state.messages:
     save_interview_data_to_drive( #updated to reference same function that is in utils
         username=st.session_state.username,
         transcripts_directory=config.BACKUPS_DIRECTORY,
-        times_directory=config.BACKUPS_DIRECTORY,
         file_name_addition_transcript=f"_transcript_started_{st.session_state.start_time_file_names}",
         file_name_addition_time=f"_time_started_{st.session_state.start_time_file_names}",
     )
