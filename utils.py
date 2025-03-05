@@ -5,7 +5,7 @@ import time
 import io
 import config
 from datetime import datetime
-from google.oauth2.service_account import Credentials
+from google.oauth2.service_account import Credentials  # FIXED import
 from googleapiclient.discovery import build
 from googleapiclient.http import MediaIoBaseUpload
 
@@ -13,7 +13,7 @@ from googleapiclient.http import MediaIoBaseUpload
 # Initialize session state variables
 if "username" not in st.session_state:
     st.session_state.username = None
-    
+
 SCOPES = ['https://www.googleapis.com/auth/drive.file']
 FOLDER_ID = "1-y9bGuI0nmK22CPXg804U5nZU3gA--lV"  # Your Google Drive folder ID
 
@@ -32,7 +32,7 @@ def upload_file_to_drive(service, file_path, file_name, mimetype='text/plain'):
     """Upload a file to a specific Google Drive folder."""
     file_metadata = {
         'name': file_name,
-        'parents': [FOLDER_ID]  #Upload to correct folder
+        'parents': [FOLDER_ID]  # Upload into the correct folder
     }
 
     with io.FileIO(file_path, 'rb') as file_data:
@@ -40,6 +40,7 @@ def upload_file_to_drive(service, file_path, file_name, mimetype='text/plain'):
         file = service.files().create(body=file_metadata, media_body=media, fields='id').execute()
 
     return file['id']
+
 
 def save_interview_data_to_drive(transcript_path, time_path):
     """Save interview transcript & timing data to Google Drive."""
