@@ -190,8 +190,8 @@ if st.session_state.interview_active:
                         time.sleep(0.1)
                         retries += 1
 
-                    if retries == max_retries:
-                        st.error("Error: Interview transcript could not be saved properly!")
+                    #if retries == max_retries:
+                       # st.error("Error: Interview transcript could not be saved properly!")
 
                     save_interview_data_to_drive(
                         os.path.join(config.TRANSCRIPTS_DIRECTORY, f"{st.session_state.username}.txt"),
