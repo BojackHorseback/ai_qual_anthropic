@@ -51,14 +51,12 @@ def save_interview_data_to_drive(transcript_path, time_path):
 
     service = authenticate_google_drive()  # Authenticate Drive API
 
-try:
-    transcript_id = upload_file_to_drive(service, transcript_path, os.path.basename(transcript_path))
-    time_id = upload_file_to_drive(service, time_path, os.path.basename(time_path))
-    st.success(f"Files uploaded! Transcript ID: {transcript_id}, Time ID: {time_id}")
-except Exception as e:
-    print(f"Warning: {e}")  # Log the error instead of showing it
-    pass  # Continue execution without displaying the error message
-
+    try:
+        transcript_id = upload_file_to_drive(service, transcript_path, os.path.basename(transcript_path))
+        time_id = upload_file_to_drive(service, time_path, os.path.basename(time_path))
+        st.success(f"Files uploaded! Transcript ID: {transcript_id}, Time ID: {time_id}")
+    except Exception as e:
+        st.error(f"Failed to upload files: {e}")
 
 
 def save_interview_data(username, transcripts_directory, times_directory, file_name_addition_transcript="", file_name_addition_time=""):
