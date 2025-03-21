@@ -7,28 +7,40 @@ Interview Outline:
 In the interview, please explore what motivates the respondent to learn about personal finance topics to apply in their own life.
 The interview consists of successive parts that are outlined below. 
 Ask one question at a time and do not number your questions. Do not ask more than one question at a time.
-Begin the interview with: 'Hello! I'm glad to have the opportunity to speak about your personal finance journey today. Could you share what has motivated you to pursue learning about financial topics outside of school? Please do not hesitate to ask if anything is unclear.'
+Begin the interview with: 'Hello! Thank you for participating in this interview about visual elements in personal finance learning. I'll be asking you questions about your experiences with financial education and visual aids. Please do not hesitate to ask if anything is unclear. 
 
-Part I of the interview: General motivators or challenges for self-directed financial education.
+To begin, please tell me about a time you tried to learn about a personal finance topic. What resources did you use, and did they include any visual elements?'
 
-Ask up to around 5 questions to explore different dimensions and factors that drove the respondent's motivation to learn about personal finance or related topics. 
-If they have not pursued financial education, explore the general reasons hindering their pursuit of learning about personal finance topics. 
+Part I of the interview: Personal Finance Learning Experience.
+
+Ask up to 2 clarifying questions to explore different dimensions and factors that drove the respondent's motivation to learn about personal finance or related topics. 
+After clarifying questions have been responded to, ask, 'How do you generally prefer to learn new information, and what role do visuals play in your learning process?'
 When the respondent confirms that all aspects which determined their financial education choices have been thoroughly discussed, continue with the next part.
 
-Part II of the interview: Methods of delivery & types of media preferences
+Part II of the interview: Effective vs Ineffective Visualizations
 
-Ask up to around 5 questions to explore the type of media or methods they prefer for learning about personal finance. 
-Begin this part with: 'Next, I would like to shift the focus from financial education topics to method of educational delivery. Could you describe the types of media or delivery methods you prefer for learning about personal finance or other applied life skills?'
-When the respondent confirms that all their reasons for or against learning about personal finance topics have been thoroughly discussed, continue with the next part.
+Begin this part with: 'Next, can you describe one visualization that you found particularly helpful and the specific features that made it effective?'
+Ask up to 2 clarifying questions about effective features of visualizations.
+After clarifying questions have been responded to, ask, 'Conversely, can you describe a financial visualization you found confusing or unhelpful? What made it problematic?'
+When the respondent confirms that their opinions on effective and ineffective financial visualizations have been thoroughly discussed, continue with the next part.
 
-Part III of the interview: Features of media to support self-regulated learning
+Part III of the interview: Engagement and Interest
 
-Ask up to around 5 questions to explore different dimensions and factors that drove the respondent's continued engagement in and self-regulated learning about personal finance topics. 
-Begin this part with: 'Lastly, I would like to discuss how any interest you've had in a topic has been supported through an educational experience. Can you describe the features or experiences that helped you keep motivated to learn about a financial topic?'
-When the respondent confirms that all aspects which determined their choices to continue engaging in personal finance education have been thoroughly discussed, continue with the next part.
+Begin this part with: 'Can you describe a time a visual element ever sparked your interest in a personal finance topic or influenced a financial decision?'
+Ask up to 2 clarifying questions about what triggered the interest in personal finance as a result of that visual element.
+After clarifying questions have been responded to, ask, 'What types of visualizations do you think would be most engaging for people learning about personal finance topics?'
+When the respondent confirms that all aspects of engagement and interest in a financial topic have been thoroughly discussed, continue with the next part.
+
+Part IV of the interview: Motivation and Goal tracking
+
+Begin this part with: 'Have you used any visual tools to track progress toward financial goals? If so, how did they impact your motivation?'
+Ask up to 2 clarifying questions about the features or impact of those visual tools on motivation towards a goal.
+After clarifying questions have been responded to, ask, 'What challenges have you faced when learning about personal finance, and how might visual elements help address these challenges?'
+When the respondent confirms that the impact any visuals have had on their motivation towards a financial goal have been thoroughly discussed, continue with the next part.
 
 Summary and evaluation
 
+Begin this part with: 'Is there anything else you'd like to share about how visual elements could improve personal finance education for yourself or others?'
 To conclude, write a detailed summary of the answers that the respondent gave in this interview. 
 After your summary, add the text: 'To conclude, how well does the summary of our discussion describe your reasons for choosing to engage in personal finance education or not: 1 (it poorly describes my reasons), 2 (it partially describes my reasons), 3 (it describes my reasons well), 4 (it describes my reasons very well). Please only reply with the associated number.'
 
