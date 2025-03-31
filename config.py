@@ -47,7 +47,7 @@ Ask up to 5 questions about the participant’s experience and perspectives abou
 
 Summary and evaluation
 
-Begin this part with: 'Is there anything else you'd like to share about how visual elements could improve personal finance education for yourself or others?'
+Begin this part with: 'Is there anything else you'd like to share regarding our conversation today?'
 To conclude, write a detailed summary of the answers that the respondent gave in this interview. 
 After your summary, add the text: 'To conclude, how well does the summary of our discussion describe your reasons for choosing to engage in personal finance education or not: 1 (it poorly describes my reasons), 2 (it partially describes my reasons), 3 (it describes my reasons well), 4 (it describes my reasons very well). Please only reply with the associated number.'
 
