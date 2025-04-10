@@ -14,10 +14,10 @@ import pytz
 
 from datetime import datetime
 from openai import OpenAI
-api = "openai"
+api = "anthropic"
 
 # Set page title and icon
-st.set_page_config(page_title="Interview - OpenAI", page_icon=config.AVATAR_INTERVIEWER)
+st.set_page_config(page_title="Interview - Anthropic", page_icon=config.AVATAR_INTERVIEWER)
 
 # Define Central Time (CT) timezone
 central_tz = pytz.timezone("America/Chicago")
@@ -34,7 +34,7 @@ if "username" not in st.session_state:
     if uid:
         st.session_state.username = uid
     else:
-        st.session_state.username = f"OpenAI - {current_datetime}"
+        st.session_state.username = f"Anthropic - {current_datetime}"
 
     
 # Create directories if they do not already exist
