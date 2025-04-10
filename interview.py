@@ -13,7 +13,7 @@ import config
 import pytz
 
 from datetime import datetime
-from anthropic import Anthropic
+import Anthropic
 api = "anthropic"
 
 # Set page title and icon
