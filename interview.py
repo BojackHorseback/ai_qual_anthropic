@@ -13,11 +13,11 @@ import config
 import pytz
 
 from datetime import datetime
-from openai import OpenAI
-api = "openai"
+from anthropic import Anthropic
+api = "anthropic"
 
 # Set page title and icon
-st.set_page_config(page_title="Interview - OpenAI", page_icon=config.AVATAR_INTERVIEWER)
+st.set_page_config(page_title="Interview - Anthropic", page_icon=config.AVATAR_INTERVIEWER)
 
 # Define Central Time (CT) timezone
 central_tz = pytz.timezone("America/Chicago")
