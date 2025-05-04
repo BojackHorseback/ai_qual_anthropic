@@ -191,7 +191,8 @@ if st.session_state.interview_active:
                 if code in message_interviewer:
                     st.session_state.messages.append({"role": "assistant", "content": message_interviewer})
                     st.session_state.interview_active = False
-                    st.markdown(config.CLOSING_MESSAGES[code])
+                    # Don't display the closing message from config - let the bot's message show
+                    # st.markdown(config.CLOSING_MESSAGES[code])  # Comment this out
 
                     final_transcript_stored = False
                     retries = 0
