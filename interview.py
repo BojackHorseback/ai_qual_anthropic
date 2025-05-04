@@ -1,4 +1,4 @@
-#interview.py - Anthropic (Saving to Google Drive)
+#interview.py - Anthropic (Saving to Google Drive) - Updated
 
 import streamlit as st
 import time
@@ -25,15 +25,11 @@ central_tz = pytz.timezone("America/Chicago")
 # Get current date and time in CT
 current_datetime = datetime.now(central_tz).strftime("%Y-%m-%d_%H-%M-%S")
 
-# Extract ResponseID from URL parameters (after UID in the Qualtrics URL)
+# Extract UID from URL parameters
 query_params = st.query_params  # Using the updated non-experimental version
-response_id = query_params.get("ResponseID", None)
-if not response_id:
-    response_id = query_params.get("responceId", None)  # Handle misspelling
-if not response_id:
-    response_id = query_params.get("UID", None)
+response_id = query_params.get("UID", None)
 
-# Set username with API type, Response ID, and date/time
+# Set username with API type, UID, and date/time
 if "username" not in st.session_state or st.session_state.username is None:
     if response_id:
         st.session_state.username = f"Anthropic_{response_id}_{current_datetime}"
