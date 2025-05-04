@@ -105,7 +105,7 @@ SYSTEM_PROMPT = f"""{INTERVIEW_OUTLINE}
 
 
 # API parameters
-MODEL = "gpt-4o-mini"  # or e.g. "claude-3-5-sonnet-20240620" (OpenAI GPT or Anthropic Claude models); changed to "gpt-4o-mini" after talking to Sam
+MODEL = "claude-3-5-sonnet-20240620"  # Changed from gpt-4o-mini to an Anthropic model
 TEMPERATURE = None  # (None for default value)
 MAX_OUTPUT_TOKENS = 1024
 
