@@ -1,10 +1,11 @@
-#I THINK THIS IS UTILS LOL
+#utils.py - Anthropic Version
 
 import streamlit as st
 import hmac
 import time
 import io
 import os
+import re
 from datetime import datetime #added to potentially use later for transcript info
 from google.oauth2.service_account import Credentials 
 from googleapiclient.discovery import build
@@ -63,15 +64,43 @@ def save_interview_data_to_drive(transcript_path):
         current_datetime = datetime.now(central_tz).strftime("%Y-%m-%d_%H-%M-%S")
         st.session_state.username = f"User_{current_datetime}"
 
+    # Before uploading the file, make sure it contains the full conversation
+    if os.path.exists(transcript_path):
+        try:
+            with open(transcript_path, "w") as t:
+                # Add metadata header
+                t.write(f"Username: {st.session_state.username}\n")
+                t.write(f"Upload Time: {datetime.now(pytz.timezone('America/Chicago')).strftime('%Y-%m-%d %H:%M:%S %Z')}\n")
+                t.write(f"{'='*50}\n\n")
+                
+                # Skip the system prompt (first message) when saving the transcript
+                for message in st.session_state.messages[1:]:
+                    t.write(f"{message['role']}: {message['content']}\n\n")
+        except Exception as e:
+            st.error(f"Error updating transcript before upload: {str(e)}")
+
     service = authenticate_google_drive()  # Authenticate Drive API
 
     try:
+        # Extract ResponseID from username for display
+        match = re.search(r'_(.*?)_\d{4}-\d{2}-\d{2}', st.session_state.username)
+        response_id = match.group(1) if match else "Unknown"
+        
         transcript_id = upload_file_to_drive(service, transcript_path, os.path.basename(transcript_path))
-        st.success(f"Files uploaded! Transcript ID: {transcript_id}")
+        
+        # Display both IDs
+        st.success(f"Files uploaded successfully!")
+        st.info(f"ResponseID: {response_id}")
+        st.info(f"TranscriptID: {transcript_id}")
+        
+        # Store transcript ID in session state for potential later use
+        st.session_state.transcript_id = transcript_id
+        
+        return transcript_id
     except Exception as e:
         st.error(f"Failed to upload files: {e}")
+        return None
 
-# pulled over from anthropic version on 3/2
 def save_interview_data(username, transcripts_directory, times_directory=None, file_name_addition_transcript="", file_name_addition_time=""):
     """Write interview data to disk."""
     # Ensure username is not None
@@ -92,8 +121,19 @@ def save_interview_data(username, transcripts_directory, times_directory=None, f
     # Store chat transcript
     try:
         with open(transcript_file, "w") as t:
-            for message in st.session_state.messages:
-                t.write(f"{message['role']}: {message['content']}\n")
+            # Add metadata header
+            t.write(f"Username: {username}\n")
+            
+            # Extract ResponseID from username
+            match = re.search(r'_(.*?)_\d{4}-\d{2}-\d{2}', username)
+            response_id = match.group(1) if match else "Unknown"
+            t.write(f"ResponseID: {response_id}\n")
+            t.write(f"Save Time: {datetime.now(pytz.timezone('America/Chicago')).strftime('%Y-%m-%d %H:%M:%S %Z')}\n")
+            t.write(f"{'='*50}\n\n")
+            
+            # Skip the system prompt (first message) when saving the transcript
+            for message in st.session_state.messages[1:]:
+                t.write(f"{message['role']}: {message['content']}\n\n")
         return transcript_file
     except Exception as e:
         st.error(f"Error saving transcript: {str(e)}")
@@ -101,8 +141,9 @@ def save_interview_data(username, transcripts_directory, times_directory=None, f
         emergency_file = f"emergency_transcript_{username}.txt"
         try:
             with open(emergency_file, "w") as t:
-                for message in st.session_state.messages:
-                    t.write(f"{message['role']}: {message['content']}\n")
+                # Skip the system prompt (first message) when saving the transcript
+                for message in st.session_state.messages[1:]:
+                    t.write(f"{message['role']}: {message['content']}\n\n")
             return emergency_file
         except:
             return None
