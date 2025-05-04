@@ -20,6 +20,16 @@ if "username" not in st.session_state:
     current_datetime = datetime.now(central_tz).strftime("%Y-%m-%d_%H-%M-%S")
     st.session_state.username = f"User_{current_datetime}"
 
+# Initialize ResponseID in session state if not already set
+if "response_id" not in st.session_state:
+    query_params = st.query_params  # Using the updated non-experimental version
+    response_id = query_params.get("ResponseID", None)
+    if not response_id:
+        response_id = query_params.get("responceId", None)  # Handle misspelling
+    if not response_id:
+        response_id = query_params.get("UID", None)
+    st.session_state.response_id = response_id
+
 SCOPES = ['https://www.googleapis.com/auth/drive.file']
 FOLDER_ID = "1-y9bGuI0nmK22CPXg804U5nZU3gA--lV"  # Your Google Drive folder ID
 
@@ -80,6 +90,7 @@ def save_interview_data_to_drive(transcript_path):
                 t.write(f"Start Time (CT): {st.session_state.get('start_time', 'Unknown')}\n")
                 t.write(f"End Time (CT): {current_time}\n")
                 t.write(f"Username: {st.session_state.username}\n")
+                t.write(f"ResponseID: {st.session_state.get('response_id', 'None')}\n")  # Added ResponseID metadata
                 t.write(f"Number of Responses: {len([m for m in st.session_state.messages if m['role'] == 'user'])}\n")
                 t.write("========================\n\n")
                 
@@ -137,6 +148,7 @@ def save_interview_data(username, transcripts_directory, times_directory=None, f
             t.write(f"Start Time (CT): {st.session_state.get('start_time', 'Unknown')}\n")
             t.write(f"End Time (CT): {current_time}\n")
             t.write(f"Username: {username}\n")
+            t.write(f"ResponseID: {st.session_state.get('response_id', 'None')}\n")  # Added ResponseID metadata
             t.write(f"Number of Responses: {len([m for m in st.session_state.messages if m['role'] == 'user'])}\n")
             t.write("========================\n\n")
             
