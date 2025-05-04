@@ -82,18 +82,12 @@ def save_interview_data_to_drive(transcript_path):
     service = authenticate_google_drive()  # Authenticate Drive API
 
     try:
-        # Extract ResponseID from username for display
-        match = re.search(r'_(.*?)_\d{4}-\d{2}-\d{2}', st.session_state.username)
-        response_id = match.group(1) if match else "Unknown"
-        
         transcript_id = upload_file_to_drive(service, transcript_path, os.path.basename(transcript_path))
         
-        # Display both IDs
+        # Just show success message without displaying any IDs
         st.success(f"Files uploaded successfully!")
-        st.info(f"ResponseID: {response_id}")
-        st.info(f"TranscriptID: {transcript_id}")
         
-        # Store transcript ID in session state for potential later use
+        # Store transcript ID in session state for potential later use (but don't display)
         st.session_state.transcript_id = transcript_id
         
         return transcript_id
@@ -124,10 +118,10 @@ def save_interview_data(username, transcripts_directory, times_directory=None, f
             # Add metadata header
             t.write(f"Username: {username}\n")
             
-            # Extract ResponseID from username
+            # Extract UID from username
             match = re.search(r'_(.*?)_\d{4}-\d{2}-\d{2}', username)
-            response_id = match.group(1) if match else "Unknown"
-            t.write(f"ResponseID: {response_id}\n")
+            uid = match.group(1) if match else "Unknown"
+            t.write(f"UID: {uid}\n")
             t.write(f"Save Time: {datetime.now(pytz.timezone('America/Chicago')).strftime('%Y-%m-%d %H:%M:%S %Z')}\n")
             t.write(f"{'='*50}\n\n")
             
