@@ -63,6 +63,34 @@ def save_interview_data_to_drive(transcript_path):
         current_datetime = datetime.now(central_tz).strftime("%Y-%m-%d_%H-%M-%S")
         st.session_state.username = f"User_{current_datetime}"
 
+    # Before uploading the file, make sure it contains the full conversation
+    # This creates a fresh transcript with all messages to ensure completeness
+    if os.path.exists(transcript_path):
+        try:
+            # Define Central Time (CT) timezone
+            central_tz = pytz.timezone("America/Chicago")
+            # Get current date and time in CT
+            current_time = datetime.now(central_tz).strftime("%Y-%m-%d %H:%M:%S %Z")
+            
+            with open(transcript_path, "w") as t:
+                # Add metadata header with complete information
+                t.write("=== INTERVIEW METADATA ===\n")
+                t.write(f"API: {'anthropic' if 'anthropic' in config.MODEL.lower() else 'openai'}\n")
+                t.write(f"Model: {config.MODEL}\n")
+                t.write(f"Start Time (CT): {st.session_state.get('start_time', 'Unknown')}\n")
+                t.write(f"End Time (CT): {current_time}\n")
+                t.write(f"Username: {st.session_state.username}\n")
+                t.write(f"Number of Responses: {len([m for m in st.session_state.messages if m['role'] == 'user'])}\n")
+                t.write("========================\n\n")
+                
+                # Skip the system prompt (first message) when saving the transcript
+                for message in st.session_state.messages:
+                    if message.get('role') == 'system':
+                        continue
+                    t.write(f"{message['role']}: {message['content']}\n\n")
+        except Exception as e:
+            st.error(f"Error updating transcript before upload: {str(e)}")
+
     service = authenticate_google_drive()  # Authenticate Drive API
 
     try:
@@ -73,13 +101,18 @@ def save_interview_data_to_drive(transcript_path):
 
 # pulled over from anthropic version on 3/2
 def save_interview_data(username, transcripts_directory, times_directory=None, file_name_addition_transcript="", file_name_addition_time=""):
-    """Write interview data to disk with complete metadata."""
+    """Write interview data to disk."""
     # Ensure username is not None
     if username is None:
         central_tz = pytz.timezone("America/Chicago")
         current_datetime = datetime.now(central_tz).strftime("%Y-%m-%d_%H-%M-%S")
         username = f"User_{current_datetime}"
         st.session_state.username = username
+    
+    # Set start time if not already set
+    if 'start_time' not in st.session_state:
+        central_tz = pytz.timezone("America/Chicago")
+        st.session_state.start_time = datetime.now(central_tz).strftime("%Y-%m-%d %H:%M:%S %Z")
     
     # Ensure directories exist
     os.makedirs(transcripts_directory, exist_ok=True)
@@ -89,28 +122,29 @@ def save_interview_data(username, transcripts_directory, times_directory=None, f
     # Create proper file paths
     transcript_file = os.path.join(transcripts_directory, f"{username}{file_name_addition_transcript}.txt")
 
-    # Store chat transcript with complete metadata
+    # Store chat transcript
     try:
+        # Define Central Time (CT) timezone
         central_tz = pytz.timezone("America/Chicago")
+        # Get current date and time in CT
         current_time = datetime.now(central_tz).strftime("%Y-%m-%d %H:%M:%S %Z")
         
         with open(transcript_file, "w") as t:
-            # Write metadata header
+            # Add metadata header with complete information
             t.write("=== INTERVIEW METADATA ===\n")
-            t.write(f"Qualtrics Response ID: {st.session_state.get('qualtrics_response_id', 'N/A')}\n")
-            t.write(f"Session ID: {username}\n")
-            t.write(f"Model Type: {'OpenAI' if 'OpenAI' in username else 'Anthropic'}\n")
-            t.write(f"Interview Start Time: {st.session_state.get('interview_start_time', 'N/A')}\n")
-            t.write(f"Interview End Time: {current_time}\n")
-            t.write(f"Message Count: {len(st.session_state.messages) - 1}\n")  # Exclude system prompt
-            t.write(f"Timezone: {central_tz.zone}\n")
-            t.write("==========================\n\n")
+            t.write(f"API: {'anthropic' if 'anthropic' in config.MODEL.lower() else 'openai'}\n")
+            t.write(f"Model: {config.MODEL}\n")
+            t.write(f"Start Time (CT): {st.session_state.get('start_time', 'Unknown')}\n")
+            t.write(f"End Time (CT): {current_time}\n")
+            t.write(f"Username: {username}\n")
+            t.write(f"Number of Responses: {len([m for m in st.session_state.messages if m['role'] == 'user'])}\n")
+            t.write("========================\n\n")
             
-            # Write conversation - preserve original single newline format
-            for i, message in enumerate(st.session_state.messages):
-                if i == 0:  # Skip system prompt
+            # Skip the system prompt (first message) when saving the transcript
+            for message in st.session_state.messages:
+                if message.get('role') == 'system':
                     continue
-                t.write(f"{message['role']}: {message['content']}\n")
+                t.write(f"{message['role']}: {message['content']}\n\n")
         return transcript_file
     except Exception as e:
         st.error(f"Error saving transcript: {str(e)}")
@@ -118,8 +152,11 @@ def save_interview_data(username, transcripts_directory, times_directory=None, f
         emergency_file = f"emergency_transcript_{username}.txt"
         try:
             with open(emergency_file, "w") as t:
+                # Skip the system prompt (first message) when saving the transcript
                 for message in st.session_state.messages:
-                    t.write(f"{message['role']}: {message['content']}\n")
+                    if message.get('role') == 'system':
+                        continue
+                    t.write(f"{message['role']}: {message['content']}\n\n")
             return emergency_file
         except:
             return None
