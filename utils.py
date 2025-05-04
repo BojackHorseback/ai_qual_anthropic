@@ -64,12 +64,21 @@ def save_interview_data_to_drive(transcript_path):
         current_datetime = datetime.now(central_tz).strftime("%Y-%m-%d_%H-%M-%S")
         st.session_state.username = f"User_{current_datetime}"
 
-    # Before uploading the file, make sure it contains the full conversation
+    # Before uploading the file, make sure it contains the full conversation with the UID
     if os.path.exists(transcript_path):
         try:
+            # Check if we have UID in session state
+            uid = st.session_state.get('uid', None)
+            
+            # Extract UID from username if not in session state
+            if not uid:
+                match = re.search(r'_(.*?)_\d{4}-\d{2}-\d{2}', st.session_state.username)
+                uid = match.group(1) if match else "Unknown"
+            
             with open(transcript_path, "w") as t:
-                # Add metadata header
+                # Add metadata header with the correct UID
                 t.write(f"Username: {st.session_state.username}\n")
+                t.write(f"User ID from Qualtrics: {uid}\n")
                 t.write(f"Upload Time: {datetime.now(pytz.timezone('America/Chicago')).strftime('%Y-%m-%d %H:%M:%S %Z')}\n")
                 t.write(f"{'='*50}\n\n")
                 
@@ -115,13 +124,17 @@ def save_interview_data(username, transcripts_directory, times_directory=None, f
     # Store chat transcript
     try:
         with open(transcript_file, "w") as t:
-            # Add metadata header
-            t.write(f"Username: {username}\n")
+            # Get the UID - check session state first, then username
+            uid = st.session_state.get('uid', None)
             
-            # Extract UID from username
-            match = re.search(r'_(.*?)_\d{4}-\d{2}-\d{2}', username)
-            uid = match.group(1) if match else "Unknown"
-            t.write(f"UID: {uid}\n")
+            if not uid:
+                # Extract UID from username if not in session state
+                match = re.search(r'_(.*?)_\d{4}-\d{2}-\d{2}', username)
+                uid = match.group(1) if match else "Unknown"
+            
+            # Add metadata header with the correct formatting
+            t.write(f"Username: {username}\n")
+            t.write(f"User ID from Qualtrics: {uid}\n")
             t.write(f"Save Time: {datetime.now(pytz.timezone('America/Chicago')).strftime('%Y-%m-%d %H:%M:%S %Z')}\n")
             t.write(f"{'='*50}\n\n")
             
