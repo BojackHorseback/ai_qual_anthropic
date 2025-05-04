@@ -95,7 +95,7 @@ SYSTEM_PROMPT = f"""{INTERVIEW_OUTLINE}
 {CODES}"""
 
 # API parameters
-MODEL = "claude-3-5-sonnet-20241022"  # Using Anthropic model as specified
+MODEL = "claude-3-5-sonnet-20240620"  # Using Anthropic model as specified
 TEMPERATURE = None  # (None for default value)
 MAX_OUTPUT_TOKENS = 1024
 
