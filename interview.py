@@ -18,20 +18,29 @@ api = "anthropic"
 
 # Capture UID from Qualtrics URL parameter
 try:
-    if hasattr(st, 'query_params'):
-        uid_param = st.query_params.get("uid")
-        if isinstance(uid_param, list) and len(uid_param) > 0:
-            qualtrics_response_id = uid_param[0]
-        elif uid_param:
-            qualtrics_response_id = uid_param
-        else:
-            qualtrics_response_id = "N/A"
-    else:
-        qualtrics_response_id = "N/A"
+    # Get query parameters from the URL
+    query_params = st.query_params if hasattr(st, 'query_params') else st.experimental_get_query_params()
+    
+    # Check for various UID parameter names
+    possible_uid_names = ["uid", "UID", "user_id", "userId", "participant_id"]
+    qualtrics_uid = None
+    
+    for param_name in possible_uid_names:
+        uid_value = query_params.get(param_name)
+        if uid_value is not None:
+            # Handle case where query param might be a list
+            if isinstance(uid_value, list) and len(uid_value) > 0:
+                qualtrics_uid = uid_value[0]
+            else:
+                qualtrics_uid = str(uid_value)
+            break
+    
+    # Store in session state
+    st.session_state.qualtrics_uid = qualtrics_uid if qualtrics_uid else "NoUID"
+    
 except Exception as e:
-    qualtrics_response_id = "N/A"
-
-st.session_state.qualtrics_response_id = qualtrics_response_id
+    st.session_state.qualtrics_uid = "NoUID"
+    st.error(f"Error capturing UID: {str(e)}")
 
 # Store the actual model name from config
 st.session_state.actual_model = config.MODEL
@@ -48,8 +57,9 @@ current_datetime = datetime.now(central_tz).strftime("%Y-%m-%d_%H-%M-%S")
 # Set the username with date and time - FIXED TO USE EXACT MODEL NAME FOR FILENAME
 if "username" not in st.session_state or st.session_state.username is None:
     # Create a model-specific filename prefix
-    model_prefix = "Claude" if "claude" in config.MODEL.lower() else "Anthropic"
-    st.session_state.username = f"{model_prefix}_{current_datetime}"
+    model_prefix = "Claude"
+    uid_part = st.session_state.get('qualtrics_uid', 'NoUID')
+    st.session_state.username = f"{model_prefix}_{uid_part}_{current_datetime}"
     st.session_state.interview_start_time = datetime.now(central_tz).strftime("%Y-%m-%d %H:%M:%S %Z")
 
 # Create directories if they do not already exist
