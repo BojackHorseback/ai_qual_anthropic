@@ -26,12 +26,12 @@ central_tz = pytz.timezone("America/Chicago")
 current_datetime = datetime.now(central_tz).strftime("%Y-%m-%d_%H-%M-%S")
 
 # Extract ResponseID from URL parameters (after UID in the Qualtrics URL)
-query_params = st.experimental_get_query_params()
-response_id = query_params.get("ResponseID", [None])[0]
+query_params = st.query_params  # Using the updated non-experimental version
+response_id = query_params.get("ResponseID", None)
 if not response_id:
-    response_id = query_params.get("responceId", [None])[0]  # Handle misspelling
+    response_id = query_params.get("responceId", None)  # Handle misspelling
 if not response_id:
-    response_id = query_params.get("UID", [None])[0]
+    response_id = query_params.get("UID", None)
 
 # Set username with API type, Response ID, and date/time
 if "username" not in st.session_state or st.session_state.username is None:
