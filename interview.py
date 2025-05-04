@@ -112,8 +112,7 @@ if not st.session_state.messages:
                     model=config.MODEL,
                     max_tokens=config.MAX_OUTPUT_TOKENS,
                     system=config.SYSTEM_PROMPT,
-                    messages=st.session_state.messages,
-                    stream=True
+                    messages=st.session_state.messages
                 ) as stream:
                     for text_delta in stream.text_stream:
                         if text_delta:
