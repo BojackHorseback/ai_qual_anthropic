@@ -118,9 +118,9 @@ def save_interview_data(username, transcripts_directory, times_directory=None, f
         st.session_state.username = username
     
     # Set start time if not already set
-    if 'start_time' not in st.session_state:
+    if 'interview_start_time' not in st.session_state:
         central_tz = pytz.timezone("America/Chicago")
-        st.session_state.start_time = datetime.now(central_tz).strftime("%Y-%m-%d %H:%M:%S %Z")
+        st.session_state.interview_start_time = datetime.now(central_tz).strftime("%Y-%m-%d %H:%M:%S %Z")
     
     # Ensure directories exist
     os.makedirs(transcripts_directory, exist_ok=True)
@@ -139,9 +139,6 @@ def save_interview_data(username, transcripts_directory, times_directory=None, f
         
         with open(transcript_file, "w") as t:
             # Add metadata header with complete information
-            t.write("=== INTERVIEW METADATA ===\n")
-            # Determine API based on config.MODEL since OpenAI and Anthropic have different model naming conventions
-            api_type = 'openai' if 'gpt' in config.MODEL.lower() else 'anthropic'
             t.write(f"API: {api_type}\n")
             t.write(f"Model: {config.MODEL}\n")
             t.write(f"Start Time (CT): {st.session_state.get('start_time', 'Unknown')}\n")
@@ -151,7 +148,7 @@ def save_interview_data(username, transcripts_directory, times_directory=None, f
             t.write(f"Number of Responses: {len([m for m in st.session_state.messages if m['role'] == 'user'])}\n")
             t.write("========================\n\n")
             
-            # Skip the system prompt (first message) when saving the transcript
+            # Skip the system prompt when saving the transcript
             for message in st.session_state.messages:
                 if message.get('role') == 'system':
                     continue
@@ -159,18 +156,7 @@ def save_interview_data(username, transcripts_directory, times_directory=None, f
         return transcript_file
     except Exception as e:
         st.error(f"Error saving transcript: {str(e)}")
-        # Create an emergency local file if all else fails
-        emergency_file = f"emergency_transcript_{username}.txt"
-        try:
-            with open(emergency_file, "w") as t:
-                # Skip the system prompt (first message) when saving the transcript
-                for message in st.session_state.messages:
-                    if message.get('role') == 'system':
-                        continue
-                    t.write(f"{message['role']}: {message['content']}\n\n")
-            return emergency_file
-        except:
-            return None
+        return None
 
 # Password screen for dashboard (note: only very basic authentication!)
 # Based on https://docs.streamlit.io/knowledge-base/deploy/authentication-without-sso
