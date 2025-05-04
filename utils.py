@@ -1,11 +1,11 @@
-#utils.py - Updated with proper model names and metadata handling
+#utils.py - Updated with proper UID handling and metadata
 
 import streamlit as st
 import hmac
 import time
 import io
 import os
-from datetime import datetime #added to potentially use later for transcript info
+from datetime import datetime
 from google.oauth2.service_account import Credentials 
 from googleapiclient.discovery import build
 from googleapiclient.http import MediaIoBaseUpload
@@ -20,15 +20,11 @@ if "username" not in st.session_state:
     current_datetime = datetime.now(central_tz).strftime("%Y-%m-%d_%H-%M-%S")
     st.session_state.username = f"User_{current_datetime}"
 
-# Initialize ResponseID in session state if not already set
+# Initialize UID in session state if not already set
 if "response_id" not in st.session_state:
     query_params = st.query_params
-    # Handle different formats that query_params might return
-    response_id = query_params.get("ResponseID", [None])[0] if isinstance(query_params.get("ResponseID"), list) else query_params.get("ResponseID")
-    if not response_id:
-        response_id = query_params.get("responceId", [None])[0] if isinstance(query_params.get("responceId"), list) else query_params.get("responceId")
-    if not response_id:
-        response_id = query_params.get("UID", [None])[0] if isinstance(query_params.get("UID"), list) else query_params.get("UID")
+    # Look for UID parameter only
+    response_id = query_params.get("UID", None)
     st.session_state.response_id = response_id
 
 SCOPES = ['https://www.googleapis.com/auth/drive.file']
@@ -46,9 +42,8 @@ def authenticate_google_drive():
 
 def upload_file_to_drive(service, file_path, file_name, mimetype='text/plain'):
     """Upload a file to a specific Google Drive folder."""
+    """Upload a file to a specific Google Drive folder."""
     
-    FOLDER_ID = "1-y9bGuI0nmK22CPXg804U5nZU3gA--lV"  # Your folder ID
-
     file_metadata = {
         'name': file_name,
         'parents': [FOLDER_ID]  # Upload into the specified folder
@@ -93,7 +88,7 @@ def save_interview_data_to_drive(transcript_path):
                 t.write(f"Start Time (CT): {st.session_state.get('start_time', 'Unknown')}\n")
                 t.write(f"End Time (CT): {current_time}\n")
                 t.write(f"Username: {st.session_state.username}\n")
-                t.write(f"ResponseID: {st.session_state.get('response_id', 'None')}\n")  # Added ResponseID metadata
+                t.write(f"UID: {st.session_state.get('response_id', 'None')}\n")  # Changed from ResponseID to UID
                 t.write(f"Number of Responses: {len([m for m in st.session_state.messages if m['role'] == 'user'])}\n")
                 t.write("========================\n\n")
                 
@@ -113,7 +108,6 @@ def save_interview_data_to_drive(transcript_path):
     except Exception as e:
         st.error(f"Failed to upload files: {e}")
 
-# pulled over from anthropic version on 3/2
 def save_interview_data(username, transcripts_directory, times_directory=None, file_name_addition_transcript="", file_name_addition_time=""):
     """Write interview data to disk."""
     # Ensure username is not None
@@ -153,7 +147,7 @@ def save_interview_data(username, transcripts_directory, times_directory=None, f
             t.write(f"Start Time (CT): {st.session_state.get('start_time', 'Unknown')}\n")
             t.write(f"End Time (CT): {current_time}\n")
             t.write(f"Username: {username}\n")
-            t.write(f"ResponseID: {st.session_state.get('response_id', 'None')}\n")  # Added ResponseID metadata
+            t.write(f"UID: {st.session_state.get('response_id', 'None')}\n")  # Changed from ResponseID to UID
             t.write(f"Number of Responses: {len([m for m in st.session_state.messages if m['role'] == 'user'])}\n")
             t.write("========================\n\n")
             
