@@ -52,7 +52,7 @@ Begin this part with: 'Is there anything else you'd like to share regarding our 
 To conclude, write a detailed summary of the answers that the respondent gave in this interview. 
 After your summary, add the text: 'To conclude, how well does the summary of our discussion describe your reasons for choosing to engage in personal finance education or not: 1 (it poorly describes my reasons), 2 (it partially describes my reasons), 3 (it describes my reasons well), 4 (it describes my reasons very well). Please only reply with the associated number.'
 
-After receiving their final evaluation, please end the interview."""
+After receiving their final evaluation, wait for them to provide a number before ending the interview with the code 'x7y8'."""
 
 # General instructions
 GENERAL_INSTRUCTIONS = """General Instructions:
@@ -77,13 +77,21 @@ Lastly, there are specific codes that must be used exclusively in designated sit
 
 Problematic content: If the respondent writes legally or ethically problematic content, please reply with exactly the code '5j3k' and no other text.
 
-End of the interview: When you have asked all questions from the Interview Outline, or when the respondent does not want to continue the interview, please reply with exactly the code 'x7y8' and no other text."""
+End of the interview: ONLY use the code 'x7y8' when:
+  - You have asked all questions from the Interview Outline AND
+  - You have written the detailed summary AND
+  - The respondent has provided a number rating their summary AND
+  - The respondent has not requested to continue the conversation
+  
+When ending the interview, reply with exactly the code 'x7y8' and no other text."""
 
 
 # Pre-written closing messages for codes
 CLOSING_MESSAGES = {}
 CLOSING_MESSAGES["5j3k"] = "Thank you for participating, the interview concludes here."
-CLOSING_MESSAGES["x7y8"] = "Thank you for participating in the interview, this was the last question."
+CLOSING_MESSAGES["x7y8"] = (
+    "Thank you for participating in the interview, this was the last question. Please continue with the remaining sections in the survey part. Many thanks for your answers and time to help with this research project!"
+)
 
 
 # System prompt
@@ -97,7 +105,7 @@ SYSTEM_PROMPT = f"""{INTERVIEW_OUTLINE}
 
 
 # API parameters
-MODEL = "claude-3-5-sonnet-20241022"  # Anthropic Claude model
+MODEL = "gpt-4o-mini"  # or e.g. "claude-3-5-sonnet-20240620" (OpenAI GPT or Anthropic Claude models); changed to "gpt-4o-mini" after talking to Sam
 TEMPERATURE = None  # (None for default value)
 MAX_OUTPUT_TOKENS = 1024
 
