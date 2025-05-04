@@ -1,4 +1,4 @@
-# UTILS.PY
+#utils.py - Updated with proper model names and metadata handling
 
 import streamlit as st
 import hmac
@@ -22,12 +22,13 @@ if "username" not in st.session_state:
 
 # Initialize ResponseID in session state if not already set
 if "response_id" not in st.session_state:
-    query_params = st.query_params  # Using the updated non-experimental version
-    response_id = query_params.get("ResponseID", None)
+    query_params = st.query_params
+    # Handle different formats that query_params might return
+    response_id = query_params.get("ResponseID", [None])[0] if isinstance(query_params.get("ResponseID"), list) else query_params.get("ResponseID")
     if not response_id:
-        response_id = query_params.get("responceId", None)  # Handle misspelling
+        response_id = query_params.get("responceId", [None])[0] if isinstance(query_params.get("responceId"), list) else query_params.get("responceId")
     if not response_id:
-        response_id = query_params.get("UID", None)
+        response_id = query_params.get("UID", [None])[0] if isinstance(query_params.get("UID"), list) else query_params.get("UID")
     st.session_state.response_id = response_id
 
 SCOPES = ['https://www.googleapis.com/auth/drive.file']
@@ -85,7 +86,9 @@ def save_interview_data_to_drive(transcript_path):
             with open(transcript_path, "w") as t:
                 # Add metadata header with complete information
                 t.write("=== INTERVIEW METADATA ===\n")
-                t.write(f"API: {'anthropic' if 'anthropic' in config.MODEL.lower() else 'openai'}\n")
+                # Determine API based on config.MODEL since OpenAI and Anthropic have different model naming conventions
+                api_type = 'openai' if 'gpt' in config.MODEL.lower() else 'anthropic'
+                t.write(f"API: {api_type}\n")
                 t.write(f"Model: {config.MODEL}\n")
                 t.write(f"Start Time (CT): {st.session_state.get('start_time', 'Unknown')}\n")
                 t.write(f"End Time (CT): {current_time}\n")
@@ -143,7 +146,9 @@ def save_interview_data(username, transcripts_directory, times_directory=None, f
         with open(transcript_file, "w") as t:
             # Add metadata header with complete information
             t.write("=== INTERVIEW METADATA ===\n")
-            t.write(f"API: {'anthropic' if 'anthropic' in config.MODEL.lower() else 'openai'}\n")
+            # Determine API based on config.MODEL since OpenAI and Anthropic have different model naming conventions
+            api_type = 'openai' if 'gpt' in config.MODEL.lower() else 'anthropic'
+            t.write(f"API: {api_type}\n")
             t.write(f"Model: {config.MODEL}\n")
             t.write(f"Start Time (CT): {st.session_state.get('start_time', 'Unknown')}\n")
             t.write(f"End Time (CT): {current_time}\n")
