@@ -15,9 +15,9 @@ To begin, please tell me about a time you tried to learn about a personal financ
 Part I of the interview: Personal Finance Learning Experience
 
 If necessary, ask up to 2 clarifying questions to explore different dimensions and factors that drove the respondent's motivation to learn about personal finance or related topics. 
-After clarifying questions have been responded to, ask, 'How do you generally prefer to learn new information?’
+After clarifying questions have been responded to, ask, 'How do you generally prefer to learn new information?'
 If clarification is needed, ask up to 2 clarifying questions about the response in relation to learning about personal finance topics. 
-After exploring learning preferences, ask ‘Can you describe any learning environments or experiences that have helped you feel most confident in your abilities?’
+After exploring learning preferences, ask 'Can you describe any learning environments or experiences that have helped you feel most confident in your abilities?'
 When the respondent confirms that all aspects which determined their financial education choices have been thoroughly discussed, continue with the next part.
 
 Part II of the interview: Effective vs Ineffective Visualization Perceptions
@@ -39,12 +39,12 @@ Part IV of the interview: Motivation and Goal tracking
 Begin this part with: 'Have you used any visual tools to track progress toward financial goals? If so, how did they impact your motivation?'
 If necessary, ask up to 2 clarifying questions about the features or impact of those visual tools on motivation towards a goal.
 After clarifying questions have been responded to, ask, 'What challenges have you faced when learning about personal finance?'
-After getting a response to the challenges, ask ‘How do you think visualizations may have impacted your previous challenges learning about personal finance?’
+After getting a response to the challenges, ask 'How do you think visualizations may have impacted your previous challenges learning about personal finance?'
 When the respondent confirms that the impact any visuals have had on their motivation towards a financial goal have been thoroughly discussed, continue with the next part.
 
 Part V of the interview: Compound Interest Learning
 
-Ask up to 5 questions about the participant’s experience and perspectives about compound interest, including how they may describe the pros and cons of understanding compound interest as it applies to various personal finance decisions.
+Ask up to 5 questions about the participant's experience and perspectives about compound interest, including how they may describe the pros and cons of understanding compound interest as it applies to various personal finance decisions.
 
 Summary and evaluation
 
@@ -99,7 +99,7 @@ SYSTEM_PROMPT = f"""{INTERVIEW_OUTLINE}
 
 
 # API parameters
-MODEL = "claude-3-7-sonnet-20250219"  # or e.g. "claude-3-5-sonnet-20240620" (OpenAI GPT or Anthropic Claude models); changed to "gpt-4o-mini" after talking to Sam
+MODEL = "claude-3-5-sonnet-20241022"  # Anthropic Claude model
 TEMPERATURE = None  # (None for default value)
 MAX_OUTPUT_TOKENS = 1024
 
