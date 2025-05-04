@@ -30,4 +30,45 @@ This version automatically saves interview transcripts to Google Drive. To set u
 1. Create a Google Cloud Project at https://console.cloud.google.com/
 2. Enable the Google Drive API for your project
 3. Create a service account and download the credentials JSON file
-4. Copy
+4. Copy the credentials file to `/etc/secrets/service-account.json` or update the path in `utils.py`
+5. Create a folder in Google Drive and note its ID (the long string in the URL when viewing the folder)
+6. Update the `FOLDER_ID` in `utils.py` with your Google Drive folder ID
+7. Share the folder with the service account email (found in the credentials JSON)
+
+## Qualtrics Integration
+
+This version captures and saves both ResponseID (from Qualtrics) and TranscriptID (Google Drive) for easy tracking:
+
+### How it works:
+1. When participants click the interview link from Qualtrics, the ResponseID is captured from the URL
+2. The username format becomes: `Anthropic_ResponseID_YYYY-MM-DD_HH-MM-SS`
+3. All files are saved with metadata including both IDs
+4. At interview completion, both IDs are displayed for the participant to copy back to Qualtrics
+
+### URL Parameters:
+The system checks for these parameter names:
+- `ResponseID`
+- `responseId`
+- `response_id`
+- `PROLIFIC_PID`
+
+### File Output:
+- **Filename**: `Anthropic_ResponseID_YYYY-MM-DD_HH-MM-SS.txt`
+- **File Content**: Includes metadata header with:
+  - Username
+  - ResponseID
+  - Save time (Central Time)
+  - Full conversation transcript
+
+## Paper and citation
+
+The paper is available at https://ssrn.com/abstract=4974382 and can be cited with the following bibtex entry:
+
+```
+@article{geieckejaravel2024,
+  title={Conversations at Scale: Robust AI-led Interviews with a Simple Open-Source Platform},
+  author={Geiecke, Friedrich and Jaravel, Xavier},
+  url={https://ssrn.com/abstract=4974382},
+  year={2024}
+}
+```
