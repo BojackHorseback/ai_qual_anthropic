@@ -1,37 +1,16 @@
-#utils.py - Updated with proper model names and metadata handling
+# UTILS.PY
 
 import streamlit as st
 import hmac
 import time
 import io
 import os
-from datetime import datetime
+from datetime import datetime #added to potentially use later for transcript info
 from google.oauth2.service_account import Credentials 
 from googleapiclient.discovery import build
 from googleapiclient.http import MediaIoBaseUpload
 import config
 import pytz
-
-# Parse URL parameters to get ResponseID from Qualtrics
-def get_qualtrics_uid():
-    """Extract the ResponseID from Qualtrics URL parameters."""
-    try:
-        # Get URL parameters
-        query_params = st.query_params
-        
-        # Get ResponseID from the parameters
-        response_id = query_params.get("ResponseID", None)
-        
-        # Also check for other common parameter names
-        if not response_id:
-            response_id = query_params.get("responseId", None)
-        if not response_id:
-            response_id = query_params.get("rid", None)
-            
-        return response_id
-    except Exception as e:
-        st.error(f"Error extracting ResponseID: {str(e)}")
-        return None
 
 # Initialize session state variables
 if "username" not in st.session_state:
@@ -39,26 +18,7 @@ if "username" not in st.session_state:
     central_tz = pytz.timezone("America/Chicago")
     # Get current date and time in CT
     current_datetime = datetime.now(central_tz).strftime("%Y-%m-%d_%H-%M-%S")
-    
-    # Get Qualtrics ResponseID
-    qualtrics_uid = get_qualtrics_uid()
-    
-    # Set base username with timestamp
-    if qualtrics_uid:
-        st.session_state.username = f"User_{qualtrics_uid}_{current_datetime}"
-    else:
-        st.session_state.username = f"User_{current_datetime}"
-
-# Initialize metadata storage
-if "metadata" not in st.session_state:
-    st.session_state.metadata = {
-        "qualtrics_uid": get_qualtrics_uid(),
-        "api": "",  # Will be set by interview.py
-        "model": "",  # Will be set by interview.py
-        "start_time": datetime.now(pytz.timezone("America/Chicago")).isoformat(),
-        "end_time": None,
-        "interview_completed": False
-    }
+    st.session_state.username = f"User_{current_datetime}"
 
 SCOPES = ['https://www.googleapis.com/auth/drive.file']
 FOLDER_ID = "1-y9bGuI0nmK22CPXg804U5nZU3gA--lV"  # Your Google Drive folder ID
@@ -103,27 +63,6 @@ def save_interview_data_to_drive(transcript_path):
         current_datetime = datetime.now(central_tz).strftime("%Y-%m-%d_%H-%M-%S")
         st.session_state.username = f"User_{current_datetime}"
 
-    # Before uploading the file, make sure it contains the full conversation
-    # This creates a fresh transcript with all messages to ensure completeness
-    if os.path.exists(transcript_path):
-        try:
-            with open(transcript_path, "w") as t:
-                # Write metadata header
-                t.write(f"=== Interview Metadata ===\n")
-                t.write(f"Username: {st.session_state.username}\n")
-                t.write(f"Start Time: {st.session_state.metadata.get('start_time', 'Unknown')}\n")
-                t.write(f"End Time: {st.session_state.metadata.get('end_time', datetime.now(pytz.timezone('America/Chicago')).isoformat())}\n")
-                t.write(f"API: {st.session_state.metadata.get('api', 'Unknown')}\n")
-                t.write(f"Model: {st.session_state.metadata.get('model', 'Unknown')}\n")
-                t.write(f"Qualtrics UID: {st.session_state.metadata.get('qualtrics_uid', 'None')}\n")
-                t.write(f"===============================\n\n")
-                
-                # Skip the system prompt (first message) when saving the transcript
-                for message in st.session_state.messages[1:]:
-                    t.write(f"{message['role']}: {message['content']}\n\n")
-        except Exception as e:
-            st.error(f"Error updating transcript before upload: {str(e)}")
-
     service = authenticate_google_drive()  # Authenticate Drive API
 
     try:
@@ -134,17 +73,13 @@ def save_interview_data_to_drive(transcript_path):
 
 # pulled over from anthropic version on 3/2
 def save_interview_data(username, transcripts_directory, times_directory=None, file_name_addition_transcript="", file_name_addition_time=""):
-    """Write interview data to disk."""
+    """Write interview data to disk with complete metadata."""
     # Ensure username is not None
     if username is None:
         central_tz = pytz.timezone("America/Chicago")
         current_datetime = datetime.now(central_tz).strftime("%Y-%m-%d_%H-%M-%S")
         username = f"User_{current_datetime}"
         st.session_state.username = username
-    
-    # Update end time in metadata
-    if "end_time" not in st.session_state.metadata or st.session_state.metadata["end_time"] is None:
-        st.session_state.metadata["end_time"] = datetime.now(pytz.timezone("America/Chicago")).isoformat()
     
     # Ensure directories exist
     os.makedirs(transcripts_directory, exist_ok=True)
@@ -154,22 +89,28 @@ def save_interview_data(username, transcripts_directory, times_directory=None, f
     # Create proper file paths
     transcript_file = os.path.join(transcripts_directory, f"{username}{file_name_addition_transcript}.txt")
 
-    # Store chat transcript
+    # Store chat transcript with complete metadata
     try:
+        central_tz = pytz.timezone("America/Chicago")
+        current_time = datetime.now(central_tz).strftime("%Y-%m-%d %H:%M:%S %Z")
+        
         with open(transcript_file, "w") as t:
             # Write metadata header
-            t.write(f"=== Interview Metadata ===\n")
-            t.write(f"Username: {username}\n")
-            t.write(f"Start Time: {st.session_state.metadata.get('start_time', 'Unknown')}\n")
-            t.write(f"End Time: {st.session_state.metadata.get('end_time', datetime.now(pytz.timezone('America/Chicago')).isoformat())}\n")
-            t.write(f"API: {st.session_state.metadata.get('api', 'Unknown')}\n")
-            t.write(f"Model: {st.session_state.metadata.get('model', 'Unknown')}\n")
-            t.write(f"Qualtrics UID: {st.session_state.metadata.get('qualtrics_uid', 'None')}\n")
-            t.write(f"===============================\n\n")
+            t.write("=== INTERVIEW METADATA ===\n")
+            t.write(f"Qualtrics Response ID: {st.session_state.get('qualtrics_response_id', 'N/A')}\n")
+            t.write(f"Session ID: {username}\n")
+            t.write(f"Model Type: {'OpenAI' if 'OpenAI' in username else 'Anthropic'}\n")
+            t.write(f"Interview Start Time: {st.session_state.get('interview_start_time', 'N/A')}\n")
+            t.write(f"Interview End Time: {current_time}\n")
+            t.write(f"Message Count: {len(st.session_state.messages) - 1}\n")  # Exclude system prompt
+            t.write(f"Timezone: {central_tz.zone}\n")
+            t.write("==========================\n\n")
             
-            # Skip the system prompt (first message) when saving the transcript
-            for message in st.session_state.messages[1:]:
-                t.write(f"{message['role']}: {message['content']}\n\n")
+            # Write conversation - preserve original single newline format
+            for i, message in enumerate(st.session_state.messages):
+                if i == 0:  # Skip system prompt
+                    continue
+                t.write(f"{message['role']}: {message['content']}\n")
         return transcript_file
     except Exception as e:
         st.error(f"Error saving transcript: {str(e)}")
@@ -177,9 +118,8 @@ def save_interview_data(username, transcripts_directory, times_directory=None, f
         emergency_file = f"emergency_transcript_{username}.txt"
         try:
             with open(emergency_file, "w") as t:
-                # Skip the system prompt (first message) when saving the transcript
-                for message in st.session_state.messages[1:]:
-                    t.write(f"{message['role']}: {message['content']}\n\n")
+                for message in st.session_state.messages:
+                    t.write(f"{message['role']}: {message['content']}\n")
             return emergency_file
         except:
             return None
