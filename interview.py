@@ -16,13 +16,27 @@ from datetime import datetime
 import anthropic
 api = "anthropic"
 
-# Capture UID from Qualtrics URL parameter
-query_params = st.query_params.to_dict()
-qualtrics_response_id = query_params.get("uid", ["N/A"])[0] if "uid" in query_params else "N/A"
-st.session_state.qualtrics_response_id = qualtrics_response_id
-
 # Set page title and icon
 st.set_page_config(page_title="Interview - Anthropic", page_icon=config.AVATAR_INTERVIEWER)
+
+# Capture UID from Qualtrics URL parameter - FIXED WAY
+try:
+    # st.query_params might return a list for each key
+    if hasattr(st, 'query_params'):
+        uid_param = st.query_params.get("uid")
+        if isinstance(uid_param, list) and len(uid_param) > 0:
+            qualtrics_response_id = uid_param[0]
+        elif uid_param:
+            qualtrics_response_id = uid_param
+        else:
+            qualtrics_response_id = "N/A"
+    else:
+        qualtrics_response_id = "N/A"
+except Exception as e:
+    qualtrics_response_id = "N/A"
+    st.error(f"Error capturing URL parameter: {e}")
+
+st.session_state.qualtrics_response_id = qualtrics_response_id
 
 # Define Central Time (CT) timezone
 central_tz = pytz.timezone("America/Chicago")
@@ -30,7 +44,7 @@ central_tz = pytz.timezone("America/Chicago")
 # Get current date and time in CT
 current_datetime = datetime.now(central_tz).strftime("%Y-%m-%d_%H-%M-%S")
 
-# Set the username with date and time
+# Set the username with date and time - KEEPING MODEL PREFIX
 if "username" not in st.session_state or st.session_state.username is None:
     st.session_state.username = f"Anthropic_{current_datetime}"
     st.session_state.interview_start_time = datetime.now(central_tz).strftime("%Y-%m-%d %H:%M:%S %Z")
