@@ -24,7 +24,7 @@ central_tz = pytz.timezone("America/Chicago")
 current_datetime = datetime.now(central_tz).strftime("%Y-%m-%d_%H-%M-%S")
 
 # Capture UID from URL parameters
-query_params = st.experimental_get_query_params()
+query_params = st.query_params()()
 uid = None
 
 # Check for various common parameter names
