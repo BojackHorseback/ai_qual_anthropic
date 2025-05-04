@@ -37,26 +37,27 @@ This version automatically saves interview transcripts to Google Drive. To set u
 
 ## Qualtrics Integration
 
-This version captures and saves both ResponseID (from Qualtrics) and TranscriptID (Google Drive) for easy tracking:
+This version captures UID from the Qualtrics URL for tracking:
 
 ### How it works:
-1. When participants click the interview link from Qualtrics, the ResponseID is captured from the URL
-2. The username format becomes: `Anthropic_ResponseID_YYYY-MM-DD_HH-MM-SS`
-3. All files are saved with metadata including both IDs
-4. At interview completion, both IDs are displayed for the participant to copy back to Qualtrics
+1. When participants click the interview link from Qualtrics, the UID is captured from the URL
+2. The username format becomes: `Anthropic_UID_YYYY-MM-DD_HH-MM-SS`
+3. All files are saved with metadata including the UID
+4. At interview completion, files are saved without displaying any IDs
 
 ### URL Parameters:
 The system checks for these parameter names:
-- `ResponseID`
-- `responseId`
-- `response_id`
-- `PROLIFIC_PID`
+- `uid`
+- `UID`
+- `user_id`
+- `userId`
+- `participant_id`
 
 ### File Output:
-- **Filename**: `Anthropic_ResponseID_YYYY-MM-DD_HH-MM-SS.txt`
+- **Filename**: `Anthropic_UID_YYYY-MM-DD_HH-MM-SS.txt`
 - **File Content**: Includes metadata header with:
   - Username
-  - ResponseID
+  - UID
   - Save time (Central Time)
   - Full conversation transcript
 
