@@ -6,7 +6,7 @@ import time
 import io
 import os
 import re
-from datetime import datetime #added to potentially use later for transcript info
+from datetime import datetime
 from google.oauth2.service_account import Credentials 
 from googleapiclient.discovery import build
 from googleapiclient.http import MediaIoBaseUpload
@@ -62,6 +62,29 @@ def save_interview_data_to_drive(transcript_path):
         current_datetime = datetime.now(central_tz).strftime("%Y-%m-%d_%H-%M-%S")
         st.session_state.username = f"User_{current_datetime}"
 
+    # Before uploading, rewrite the file to ensure model info is included
+    if os.path.exists(transcript_path):
+        try:
+            with open(transcript_path, "w") as t:
+                # Extract UID from username or session state
+                uid = st.session_state.get('uid', None)
+                if not uid:
+                    match = re.search(r'Claude_(.*?)_\d{4}-\d{2}-\d{2}', st.session_state.username)
+                    uid = match.group(1) if match else "Unknown"
+                
+                # Add comprehensive metadata header
+                t.write(f"Username: {st.session_state.username}\n")
+                t.write(f"AI Model: {config.MODEL}\n")
+                t.write(f"User ID from Qualtrics: {uid}\n")
+                t.write(f"Upload Time: {datetime.now(pytz.timezone('America/Chicago')).strftime('%Y-%m-%d %H:%M:%S %Z')}\n")
+                t.write(f"{'='*50}\n\n")
+                
+                # Skip the system prompt (first message) when saving the transcript
+                for message in st.session_state.messages[1:]:
+                    t.write(f"{message['role']}: {message['content']}\n\n")
+        except Exception as e:
+            st.error(f"Error updating transcript before upload: {str(e)}")
+
     service = authenticate_google_drive()  # Authenticate Drive API
 
     try:
@@ -101,7 +124,7 @@ def save_interview_data(username, transcripts_directory, times_directory=None, f
             # Extract UID from username or session state
             uid = st.session_state.get('uid', None)
             if not uid:
-                match = re.search(r'Anthropic_(.*?)_\d{4}-\d{2}-\d{2}', username)
+                match = re.search(r'Claude_(.*?)_\d{4}-\d{2}-\d{2}', username)
                 uid = match.group(1) if match else "Unknown"
             
             # Add comprehensive metadata header
@@ -159,7 +182,7 @@ def check_password():
 
     # Otherwise show login screen
     login_form()
-    if "password_correc�in st.session_state:
+    if "password_correct" in st.session_state:
         st.error("User or password incorrect")
     return False, st.session_state.username
 
