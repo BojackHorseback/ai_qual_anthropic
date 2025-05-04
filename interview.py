@@ -16,26 +16,6 @@ from datetime import datetime
 import anthropic
 api = "anthropic"
 
-# Capture UID from Qualtrics URL parameter
-try:
-    if hasattr(st, 'query_params'):
-        uid_param = st.query_params.get("uid")
-        if isinstance(uid_param, list) and len(uid_param) > 0:
-            qualtrics_response_id = uid_param[0]
-        elif uid_param:
-            qualtrics_response_id = uid_param
-        else:
-            qualtrics_response_id = "N/A"
-    else:
-        qualtrics_response_id = "N/A"
-except Exception as e:
-    qualtrics_response_id = "N/A"
-
-st.session_state.qualtrics_response_id = qualtrics_response_id
-
-# Store the actual model name from config
-st.session_state.actual_model = config.MODEL
-
 # Set page title and icon
 st.set_page_config(page_title="Interview - Anthropic", page_icon=config.AVATAR_INTERVIEWER)
 
@@ -45,13 +25,21 @@ central_tz = pytz.timezone("America/Chicago")
 # Get current date and time in CT
 current_datetime = datetime.now(central_tz).strftime("%Y-%m-%d_%H-%M-%S")
 
-# Set the username with date and time - FIXED TO USE EXACT MODEL NAME FOR FILENAME
-if "username" not in st.session_state or st.session_state.username is None:
-    # Create a model-specific filename prefix
-    model_prefix = "Claude" if "claude" in config.MODEL.lower() else "Anthropic"
-    st.session_state.username = f"{model_prefix}_{current_datetime}"
-    st.session_state.interview_start_time = datetime.now(central_tz).strftime("%Y-%m-%d %H:%M:%S %Z")
+# Extract ResponseID from URL parameters (after UID in the Qualtrics URL)
+query_params = st.experimental_get_query_params()
+response_id = query_params.get("ResponseID", [None])[0]
+if not response_id:
+    response_id = query_params.get("responceId", [None])[0]  # Handle misspelling
+if not response_id:
+    response_id = query_params.get("UID", [None])[0]
 
+# Set username with API type, Response ID, and date/time
+if "username" not in st.session_state or st.session_state.username is None:
+    if response_id:
+        st.session_state.username = f"Anthropic_{response_id}_{current_datetime}"
+    else:
+        st.session_state.username = f"Anthropic_{current_datetime}"
+    
 # Create directories if they do not already exist
 for directory in [config.TRANSCRIPTS_DIRECTORY, config.TIMES_DIRECTORY, config.BACKUPS_DIRECTORY]:
     os.makedirs(directory, exist_ok=True)
@@ -59,6 +47,7 @@ for directory in [config.TRANSCRIPTS_DIRECTORY, config.TIMES_DIRECTORY, config.B
 # Initialise session state
 st.session_state.setdefault("interview_active", True)
 st.session_state.setdefault("messages", [])
+
 
 # Check if interview previously completed
 interview_previously_completed = check_if_interview_completed(
@@ -70,6 +59,7 @@ if interview_previously_completed and not st.session_state.messages:
     st.session_state.interview_active = False
     completed_message = "Interview already completed."
     
+
 # Add 'Quit' button to dashboard
 col1, col2 = st.columns([0.85, 0.15])
 with col2:
@@ -82,19 +72,15 @@ with col2:
             st.error(f"Error saving data: {str(e)}")
 
 # Display previous conversation (except system prompt)
-for message in st.session_state.messages[1:]:
+for message in st.session_state.messages:
     avatar = config.AVATAR_INTERVIEWER if message["role"] == "assistant" else config.AVATAR_RESPONDENT
     if not any(code in message["content"] for code in config.CLOSING_MESSAGES.keys()):
         with st.chat_message(message["role"], avatar=avatar):
             st.markdown(message["content"])
 
 # Load API client
-if api == "openai":
-    client = OpenAI(api_key=st.secrets["API_KEY"])
-    api_kwargs = {"stream": True}
-elif api == "anthropic":
-    client = anthropic.Anthropic(api_key=st.secrets["API_KEY"])
-    api_kwargs = {"system": config.SYSTEM_PROMPT}
+client = anthropic.Anthropic(api_key=st.secrets["API_KEY"])
+api_kwargs = {"system": config.SYSTEM_PROMPT}
 
 # API kwargs
 api_kwargs.update({
@@ -107,32 +93,21 @@ if config.TEMPERATURE is not None:
 
 # Initialize first system message if history is empty
 if not st.session_state.messages:
-    if api == "openai":
-        st.session_state.messages.append({"role": "system", "content": config.SYSTEM_PROMPT})
-        with st.chat_message("assistant", avatar=config.AVATAR_INTERVIEWER):
-            try:
-                stream = client.chat.completions.create(**api_kwargs)
-                message_interviewer = st.write_stream(stream)
-            except Exception as e:
-                st.error(f"API Error: {str(e)}")
-                message_interviewer = "Sorry, there was an error connecting to the interview service. Please try again later."
-
-    elif api == "anthropic":
-        st.session_state.messages.append({"role": "user", "content": "Hi"})
-        with st.chat_message("assistant", avatar=config.AVATAR_INTERVIEWER):
-            message_placeholder = st.empty()
-            message_interviewer = ""
-            try:
-                with client.messages.stream(**api_kwargs) as stream:
-                    for text_delta in stream.text_stream:
-                        if text_delta:
-                            message_interviewer += text_delta
-                        message_placeholder.markdown(message_interviewer + "▌")
-                message_placeholder.markdown(message_interviewer)
-            except Exception as e:
-                st.error(f"API Error: {str(e)}")
-                message_interviewer = "Sorry, there was an error connecting to the interview service. Please try again later."
-                message_placeholder.markdown(message_interviewer)
+    st.session_state.messages.append({"role": "user", "content": "Hi"})
+    with st.chat_message("assistant", avatar=config.AVATAR_INTERVIEWER):
+        message_placeholder = st.empty()
+        message_interviewer = ""
+        try:
+            with client.messages.stream(**api_kwargs) as stream:
+                for text_delta in stream.text_stream:
+                    if text_delta:
+                        message_interviewer += text_delta
+                    message_placeholder.markdown(message_interviewer + "▌")
+            message_placeholder.markdown(message_interviewer)
+        except Exception as e:
+            st.error(f"API Error: {str(e)}")
+            message_interviewer = "Sorry, there was an error connecting to the interview service. Please try again later."
+            message_placeholder.markdown(message_interviewer)
 
     st.session_state.messages.append({"role": "assistant", "content": message_interviewer})
 
@@ -158,10 +133,8 @@ if st.session_state.interview_active:
             message_interviewer = ""
 
             try:
-                if api == "openai":
-                    stream = client.chat.completions.create(**api_kwargs)
-                    for message in stream:
-                        text_delta = message.choices[0].delta.content
+                with client.messages.stream(**api_kwargs) as stream:
+                    for text_delta in stream.text_stream:
                         if text_delta:
                             message_interviewer += text_delta
                         if len(message_interviewer) > 5:
@@ -169,17 +142,6 @@ if st.session_state.interview_active:
                         if any(code in message_interviewer for code in config.CLOSING_MESSAGES.keys()):
                             message_placeholder.empty()
                             break
-
-                elif api == "anthropic":
-                    with client.messages.stream(**api_kwargs) as stream:
-                        for text_delta in stream.text_stream:
-                            if text_delta:
-                                message_interviewer += text_delta
-                            if len(message_interviewer) > 5:
-                                message_placeholder.markdown(message_interviewer + "▌")
-                            if any(code in message_interviewer for code in config.CLOSING_MESSAGES.keys()):
-                                message_placeholder.empty()
-                                break
             except Exception as e:
                 st.error(f"API Error: {str(e)}")
                 message_interviewer = "Sorry, there was an error. Your response was saved, but we couldn't generate a reply."
@@ -198,10 +160,9 @@ if st.session_state.interview_active:
 
             for code in config.CLOSING_MESSAGES.keys():
                 if code in message_interviewer:
-                    display_message = config.CLOSING_MESSAGES[code]
-                    st.session_state.messages.append({"role": "assistant", "content": display_message})
+                    st.session_state.messages.append({"role": "assistant", "content": message_interviewer})
                     st.session_state.interview_active = False
-                    st.markdown(display_message)
+                    st.markdown(config.CLOSING_MESSAGES[code])
 
                     final_transcript_stored = False
                     retries = 0
