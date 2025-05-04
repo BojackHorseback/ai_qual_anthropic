@@ -23,9 +23,28 @@ central_tz = pytz.timezone("America/Chicago")
 # Get current date and time in CT
 current_datetime = datetime.now(central_tz).strftime("%Y-%m-%d_%H-%M-%S")
 
-# Set the username with date and time
+# Capture UID from URL parameters
+query_params = st.experimental_get_query_params()
+uid = None
+
+# Check for various common parameter names
+if 'uid' in query_params:
+    uid = query_params['uid'][0]
+elif 'UID' in query_params:
+    uid = query_params['UID'][0]
+elif 'RESPONSE_ID' in query_params:
+    uid = query_params['RESPONSE_ID'][0]
+elif 'ResponseID' in query_params:
+    uid = query_params['ResponseID'][0]
+elif 'response_id' in query_params:
+    uid = query_params['response_id'][0]
+
+# Set the username with UID and model identifier
 if "username" not in st.session_state or st.session_state.username is None:
-    st.session_state.username = f"Anthropic_{current_datetime}"
+    if uid:
+        st.session_state.username = f"Anthropic_{uid}_{current_datetime}"
+    else:
+        st.session_state.username = f"Anthropic_NoUID_{current_datetime}"
 
 # Create directories if they do not already exist
 for directory in [config.TRANSCRIPTS_DIRECTORY, config.TIMES_DIRECTORY, config.BACKUPS_DIRECTORY]:
