@@ -31,65 +31,45 @@ def get_qualtrics_uid():
     query_string = st.query_params
     uid = None
     
+    # Debug: Print available query parameters
+    st.write(f"Debug: Available query parameters: {dict(query_string)}")
+    
     # Try different parameter names that Qualtrics might use for UID
     params_to_check = ['uid', 'UID', 'user_id', 'userId', 'participant_id']
     
     for param in params_to_check:
         if param in query_string:
             uid = query_string[param]
+            st.write(f"Debug: Found UID under parameter '{param}': {uid}")
             break
     
     return uid
-
-# Function to extract ResponseID from URL parameters
-def get_qualtrics_response_id():
-    """Extract ResponseID from URL parameters"""
-    query_string = st.query_params
-    response_id = None
-    
-    # Try different parameter names
-    params_to_check = ['ResponseID', 'responseId', 'response_id', 'PROLIFIC_PID']
-    
-    for param in params_to_check:
-        if param in query_string:
-            response_id = query_string[param]
-            break
-    
-    return response_id
 
 # Function to ensure query parameters are captured
 def ensure_query_params():
     """Ensure query parameters are captured from URL"""
     try:
-        # Get the query string from JavaScript
-        js_query = st.components.v1.html("""
+        # Show JavaScript to capture query params
+        st.components.v1.html("""
             <script>
-                const queryString = window.location.search;
-                const urlParams = new URLSearchParams(queryString);
-                const uid = urlParams.get('uid') || 
-                           urlParams.get('UID') || 
-                           urlParams.get('user_id') ||
-                           urlParams.get('userId') ||
-                           urlParams.get('participant_id');
-                const responseId = urlParams.get('ResponseID') || 
-                                 urlParams.get('responseId') || 
-                                 urlParams.get('response_id') ||
-                                 urlParams.get('PROLIFIC_PID');
-                                 
+                // Get URL parameters
+                const urlParams = new URLSearchParams(window.location.search);
+                const uid = urlParams.get('uid');
+                
+                // Debug: Log the UID
+                console.log('Debug: UID from URL:', uid);
+                
+                // Set the UID in Streamlit query params
                 if (uid) {
-                    window.parent.document.dispatchEvent(new CustomEvent('streamlit:setQueryParams', {
-                        detail: {uid: uid}
-                    }));
-                }
-                if (responseId) {
-                    window.parent.document.dispatchEvent(new CustomEvent('streamlit:setQueryParams', {
-                        detail: {ResponseID: responseId}
-                    }));
+                    window.parent.postMessage({
+                        type: 'streamlit:setQueryParam',
+                        data: {uid: uid}
+                    }, '*');
                 }
             </script>
         """, height=0)
-    except Exception:
-        pass
+    except Exception as e:
+        st.write(f"Debug: Error in ensure_query_params: {e}")
 
 # Ensure query parameters are captured
 ensure_query_params()
@@ -100,14 +80,24 @@ current_datetime = datetime.now(central_tz).strftime("%Y-%m-%d_%H-%M-%S")
 # Get UID from URL
 uid = get_qualtrics_uid()
 
+# Debug: Check if UID is captured properly
+st.write(f"Debug: Captured UID: {uid}")
+
+# Store the UID in session state
+if uid:
+    st.session_state.uid = uid
+    st.write(f"Debug: UID stored in session state: {st.session_state.uid}")
+
 # Create username with UID instead of ResponseID
 if "username" not in st.session_state or st.session_state.username is None:
     if uid:
         # Format: "Anthropic_UID_DateTimeStamp"
         st.session_state.username = f"Anthropic_{uid}_{current_datetime}"
+        st.write(f"Debug: Username set to: {st.session_state.username}")
     else:
         # Fallback if no UID
         st.session_state.username = f"Anthropic_NoUID_{current_datetime}"
+        st.write(f"Debug: No UID found, username set to: {st.session_state.username}")
 
     
 # Create directories if they do not already exist
