@@ -16,10 +16,10 @@ from datetime import datetime
 import anthropic
 api = "anthropic"
 
-# Capture UID from Qualtrics URL parameter
+# Capture UID from Qualtrics URL parameter - FIXED VERSION
 try:
     # Get query parameters from the URL
-    query_params = st.query_params if hasattr(st, 'query_params') else st.experimental_get_query_params()
+    query_params = st.query_params
     
     # Check for various UID parameter names
     possible_uid_names = ["uid", "UID", "user_id", "userId", "participant_id"]
@@ -35,15 +35,13 @@ try:
                 qualtrics_uid = str(uid_value)
             break
     
-    # Store in session state
-    st.session_state.qualtrics_uid = qualtrics_uid if qualtrics_uid else "NoUID"
+    # Store in session state - ENSURING IT GETS SAVED PROPERLY
+    if "qualtrics_uid" not in st.session_state:
+        st.session_state.qualtrics_uid = qualtrics_uid
     
 except Exception as e:
-    st.session_state.qualtrics_uid = "NoUID"
+    st.session_state.qualtrics_uid = None
     st.error(f"Error capturing UID: {str(e)}")
-
-# Store the actual model name from config
-st.session_state.actual_model = config.MODEL
 
 # Set page title and icon
 st.set_page_config(page_title="Interview - Anthropic", page_icon=config.AVATAR_INTERVIEWER)
@@ -56,7 +54,6 @@ current_datetime = datetime.now(central_tz).strftime("%Y-%m-%d_%H-%M-%S")
 
 # Set the username with date and time - FIXED TO USE EXACT MODEL NAME FOR FILENAME
 if "username" not in st.session_state or st.session_state.username is None:
-    # Create a model-specific filename prefix
     model_prefix = "Claude"
     uid_part = st.session_state.get('qualtrics_uid', 'NoUID')
     st.session_state.username = f"{model_prefix}_{uid_part}_{current_datetime}"
