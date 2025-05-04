@@ -25,67 +25,30 @@ st.set_page_config(page_title="Interview - Anthropic", page_icon=config.AVATAR_I
 # Define Central Time (CT) timezone
 central_tz = pytz.timezone("America/Chicago")
 
-# Function to extract UID from URL parameters
-def get_qualtrics_uid():
-    """Extract UID from URL parameters"""
-    query_string = st.query_params
-    uid = None
-    
-    # Try different parameter names that Qualtrics might use for UID
-    params_to_check = ['uid', 'UID', 'user_id', 'userId', 'participant_id']
-    
-    for param in params_to_check:
-        if param in query_string:
-            uid = query_string[param]
+# Extract UID from URL query parameters
+uid = None
+try:
+    query_params = st.experimental_get_query_params()
+    for key in ['uid', 'UID', 'user_id', 'userId', 'participant_id']:
+        if key in query_params:
+            uid = query_params[key][0]
             break
-    
-    return uid
-
-# Function to ensure query parameters are captured
-def ensure_query_params():
-    """Ensure query parameters are captured from URL"""
-    try:
-        # Show JavaScript to capture query params
-        st.components.v1.html("""
-            <script>
-                // Get URL parameters
-                const urlParams = new URLSearchParams(window.location.search);
-                const uid = urlParams.get('uid');
-                
-                // Set the UID in Streamlit query params
-                if (uid) {
-                    window.parent.postMessage({
-                        type: 'streamlit:setQueryParam',
-                        data: {uid: uid}
-                    }, '*');
-                }
-            </script>
-        """, height=0)
-    except Exception:
-        pass
-
-# Ensure query parameters are captured
-ensure_query_params()
+except:
+    pass
 
 # Get current date and time in CT
 current_datetime = datetime.now(central_tz).strftime("%Y-%m-%d_%H-%M-%S")
 
-# Get UID from URL
-uid = get_qualtrics_uid()
-
-# Store the UID in session state
-if uid:
-    st.session_state.uid = uid
-
-# Create username with UID instead of ResponseID
+# Create username with UID (format: Anthropic_UID_DateTimeStamp)
 if "username" not in st.session_state or st.session_state.username is None:
     if uid:
-        # Format: "Anthropic_UID_DateTimeStamp"
         st.session_state.username = f"Anthropic_{uid}_{current_datetime}"
     else:
-        # Fallback if no UID
         st.session_state.username = f"Anthropic_NoUID_{current_datetime}"
 
+# Store UID in session state for later use
+if uid:
+    st.session_state.uid = uid
     
 # Create directories if they do not already exist
 for directory in [config.TRANSCRIPTS_DIRECTORY, config.TIMES_DIRECTORY, config.BACKUPS_DIRECTORY]:
