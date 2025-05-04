@@ -16,9 +16,9 @@ from datetime import datetime
 import anthropic
 api = "anthropic"
 
-# Capture metadata from Qualtrics
-query_params = st.query_params
-qualtrics_response_id = query_params.get("ResponseID", ["N/A"])[0]
+# Capture UID from Qualtrics URL parameter
+query_params = st.query_params.to_dict()
+qualtrics_response_id = query_params.get("uid", ["N/A"])[0] if "uid" in query_params else "N/A"
 st.session_state.qualtrics_response_id = qualtrics_response_id
 
 # Set page title and icon
