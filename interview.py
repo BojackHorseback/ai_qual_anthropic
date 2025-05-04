@@ -39,12 +39,12 @@ except:
 # Get current date and time in CT
 current_datetime = datetime.now(central_tz).strftime("%Y-%m-%d_%H-%M-%S")
 
-# Create username with UID (format: Anthropic_UID_DateTimeStamp)
+# Create username with model and UID (format: Anthropic_UID_DateTimeStamp)
 if "username" not in st.session_state or st.session_state.username is None:
     if uid:
-        st.session_state.username = f"Anthropic_{uid}_{current_datetime}"
+        st.session_state.username = f"Claude_{uid}_{current_datetime}"
     else:
-        st.session_state.username = f"Anthropic_NoUID_{current_datetime}"
+        st.session_state.username = f"Claude_NoUID_{current_datetime}"
 
 # Store UID in session state for later use
 if uid:
