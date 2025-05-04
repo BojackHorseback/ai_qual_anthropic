@@ -16,12 +16,8 @@ from datetime import datetime
 import anthropic
 api = "anthropic"
 
-# Set page title and icon
-st.set_page_config(page_title="Interview - Anthropic", page_icon=config.AVATAR_INTERVIEWER)
-
-# Capture UID from Qualtrics URL parameter - FIXED WAY
+# Capture UID from Qualtrics URL parameter
 try:
-    # st.query_params might return a list for each key
     if hasattr(st, 'query_params'):
         uid_param = st.query_params.get("uid")
         if isinstance(uid_param, list) and len(uid_param) > 0:
@@ -34,9 +30,11 @@ try:
         qualtrics_response_id = "N/A"
 except Exception as e:
     qualtrics_response_id = "N/A"
-    st.error(f"Error capturing URL parameter: {e}")
 
 st.session_state.qualtrics_response_id = qualtrics_response_id
+
+# Set page title and icon
+st.set_page_config(page_title="Interview - Anthropic", page_icon=config.AVATAR_INTERVIEWER)
 
 # Define Central Time (CT) timezone
 central_tz = pytz.timezone("America/Chicago")
@@ -44,7 +42,7 @@ central_tz = pytz.timezone("America/Chicago")
 # Get current date and time in CT
 current_datetime = datetime.now(central_tz).strftime("%Y-%m-%d_%H-%M-%S")
 
-# Set the username with date and time - KEEPING MODEL PREFIX
+# Set the username with date and time
 if "username" not in st.session_state or st.session_state.username is None:
     st.session_state.username = f"Anthropic_{current_datetime}"
     st.session_state.interview_start_time = datetime.now(central_tz).strftime("%Y-%m-%d %H:%M:%S %Z")
@@ -195,9 +193,12 @@ if st.session_state.interview_active:
 
             for code in config.CLOSING_MESSAGES.keys():
                 if code in message_interviewer:
-                    st.session_state.messages.append({"role": "assistant", "content": message_interviewer})
+                    # DON'T add the code to session state messages - it's just internal signaling
+                    # Add the actual closing message to show to user after the code is detected
+                    display_message = config.CLOSING_MESSAGES[code]
+                    st.session_state.messages.append({"role": "assistant", "content": display_message})
                     st.session_state.interview_active = False
-                    st.markdown(config.CLOSING_MESSAGES[code])
+                    st.markdown(display_message)
 
                     final_transcript_stored = False
                     retries = 0
