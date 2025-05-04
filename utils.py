@@ -19,7 +19,7 @@ if "username" not in st.session_state:
     central_tz = pytz.timezone("America/Chicago")
     # Get current date and time in CT
     current_datetime = datetime.now(central_tz).strftime("%Y-%m-%d_%H-%M-%S")
-    st.session_state.username = f"User_{current_datetime}"
+    st.session_state.username = f"Anthropic_{current_datetime}"
 
 SCOPES = ['https://www.googleapis.com/auth/drive.file']
 FOLDER_ID = "1-y9bGuI0nmK22CPXg804U5nZU3gA--lV"  # Your Google Drive folder ID
