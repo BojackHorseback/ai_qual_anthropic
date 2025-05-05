@@ -137,14 +137,25 @@ def save_interview_data(username, transcripts_directory, times_directory=None, f
         # Get current date and time in CT
         current_time = datetime.now(central_tz).strftime("%Y-%m-%d %H:%M:%S %Z")
         
+        # Determine API type based on config.MODEL
+        api_type = 'openai' if 'gpt' in config.MODEL.lower() else 'anthropic'
+        
         with open(transcript_file, "w") as t:
             # Add metadata header with complete information
+            t.write("=== INTERVIEW METADATA ===\n")
             t.write(f"API: {api_type}\n")
             t.write(f"Model: {config.MODEL}\n")
-            t.write(f"Start Time (CT): {st.session_state.get('start_time', 'Unknown')}\n")
+            t.write(f"Start Time (CT): {st.session_state.get('interview_start_time', 'Unknown')}\n")  # Fixed reference
             t.write(f"End Time (CT): {current_time}\n")
             t.write(f"Username: {username}\n")
-            t.write(f"UID: {st.session_state.get('response_id', 'None')}\n")  # Changed from ResponseID to UID
+            
+            # Get UID from various possible names
+            uid = (st.session_state.get('response_id') or 
+                   st.session_state.get('qualtrics_uid') or 
+                   st.session_state.get('qualtrics_response_id') or 
+                   'None')
+            t.write(f"UID: {uid}\n")
+            
             t.write(f"Number of Responses: {len([m for m in st.session_state.messages if m['role'] == 'user'])}\n")
             t.write("========================\n\n")
             
