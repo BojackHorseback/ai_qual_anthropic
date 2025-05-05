@@ -22,7 +22,7 @@ try:
     query_params = st.query_params
     
     # Check for various UID parameter names
-    possible_uid_names = ["uid", "UID", "user_id", "userId", "participant_id"]
+    possible_uid_names = ["uid", "UID", "user_id", "userId", "participant_id", "ResponseID"]
     qualtrics_uid = None
     
     for param_name in possible_uid_names:
@@ -35,12 +35,11 @@ try:
                 qualtrics_uid = str(uid_value)
             break
     
-    # Store in session state - ENSURING IT GETS SAVED PROPERLY
-    if "qualtrics_uid" not in st.session_state:
-        st.session_state.qualtrics_uid = qualtrics_uid
+    # Store in session state with consistent naming
+    st.session_state.response_id = qualtrics_uid  # Use 'response_id' to match utils.py
     
 except Exception as e:
-    st.session_state.qualtrics_uid = None
+    st.session_state.response_id = None
     st.error(f"Error capturing UID: {str(e)}")
 
 # Set page title and icon
