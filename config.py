@@ -28,10 +28,11 @@ REMEMBER: The participant's experience and insights are the priority. Cover the 
 
 Interview Flow:
 
-Begin the interview with: 'Hello! Thank you for participating in this interview about financial education and visual learning. 
+Begin the interview with: 'Hello! 'Thank you for participating in this interview about financial education and visual learning. 
 I understand you recently completed an online course on compound interest, and I'm interested in hearing about your experience. 
+Before we begin, please confirm the email address you used to enroll in the Canvas course for the study.
 
-Please feel free to elaborate as much as you'd like or ask for clarity if anything is confusing. To begin, can you tell me about the course you just completed on compound interest?'
+Follow up with and acknowledgement of their response and 'Please feel free to elaborate as much as you'd like or ask for clarity if anything is confusing. To begin, can you tell me about the course you just completed on compound interest?'
 
 Part I of the interview: Learning Experiences with Visuals
 - Ask about what resources they used during that learning experience
