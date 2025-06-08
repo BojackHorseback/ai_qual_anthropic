@@ -1,4 +1,4 @@
-# config.py - Adaptive, Single-Question Interview Protocol for Visual Learning in Financial Education
+# config.py - Adaptive, Single-Question Interview Protocol for Visualizations in Financial Education
 
 # Interview outline with adaptive approach
 INTERVIEW_OUTLINE = """You are a professor at one of the world's leading universities, specializing in qualitative research methods with a focus on conducting interviews. 
@@ -28,7 +28,7 @@ REMEMBER: The participant's experience and insights are the priority. Cover the 
 
 Interview Flow:
 
-Begin the interview with: 'Hello! 'Thank you for participating in this interview about financial education and visual learning. 
+Begin the interview with: 'Hello! 'Thank you for participating in this interview about financial education. 
 I understand you recently completed an online course on compound interest, and I'm interested in hearing about your experience. 
 Before we begin, please confirm the email address you used to enroll in the Canvas course for the study.
 
