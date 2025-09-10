@@ -1,4 +1,4 @@
-#interview.py - Anthropic (Saving to Google Drive)
+#interview.py - Anthropic (Saving to Google Drive) - Response ID Integration Fixed
 
 import streamlit as st
 import time
@@ -23,24 +23,24 @@ try:
     
     # Check for various UID parameter names
     possible_uid_names = ["uid", "UID", "user_id", "userId", "participant_id", "ResponseID"]
-    qualtrics_uid = None
+    captured_response_id = None
     
     for param_name in possible_uid_names:
         uid_value = query_params.get(param_name)
         if uid_value is not None:
             # Handle case where query param might be a list
             if isinstance(uid_value, list) and len(uid_value) > 0:
-                qualtrics_uid = uid_value[0]
+                captured_response_id = uid_value[0]
             else:
-                qualtrics_uid = str(uid_value)
+                captured_response_id = str(uid_value)
             break
     
     # Store in session state with consistent naming
-    st.session_state.response_id = qualtrics_uid  # Use 'response_id' to match utils.py
+    st.session_state.response_id = captured_response_id
     
 except Exception as e:
     st.session_state.response_id = None
-    st.error(f"Error capturing UID: {str(e)}")
+    st.error(f"Error capturing Response ID: {str(e)}")
 
 # Set page title and icon
 st.set_page_config(page_title="Interview - Anthropic", page_icon=config.AVATAR_INTERVIEWER)
@@ -51,10 +51,13 @@ central_tz = pytz.timezone("America/Chicago")
 # Get current date and time in CT
 current_datetime = datetime.now(central_tz).strftime("%Y-%m-%d_%H-%M-%S")
 
-# Set the username with date and time - FIXED TO USE EXACT MODEL NAME FOR FILENAME
+# Set the username with date and time - FIXED to properly use Response ID
 if "username" not in st.session_state or st.session_state.username is None:
     model_prefix = "Claude"
-    uid_part = st.session_state.get('qualtrics_uid', 'NoUID')
+    # FIXED: Use 'response_id' instead of 'qualtrics_uid'
+    uid_part = st.session_state.get('response_id', 'NoUID')
+    if uid_part is None:
+        uid_part = 'NoUID'
     st.session_state.username = f"{model_prefix}_{uid_part}_{current_datetime}"
     st.session_state.interview_start_time = datetime.now(central_tz).strftime("%Y-%m-%d %H:%M:%S %Z")
 
@@ -229,12 +232,30 @@ if st.session_state.interview_active:
 
                     if retries == max_retries and not final_transcript_stored:
                         st.error("Error: Interview transcript could not be saved properly after multiple attempts!")
-                        # Create emergency local transcript
+                        
+                        # Create emergency local transcript with custom labels
                         emergency_file = f"emergency_transcript_{st.session_state.username}.txt"
                         try:
+                            # Determine speaker labels
+                            user_label = st.session_state.get('response_id', 'user')
+                            if user_label is None or user_label == 'None':
+                                user_label = 'user'
+                            assistant_label = 'Claude'  # Since this is the Anthropic version
+                            
                             with open(emergency_file, "w") as t:
                                 for message in st.session_state.messages:
-                                    t.write(f"{message['role']}: {message['content']}\n")
+                                    if message.get('role') == 'system':
+                                        continue
+                                    
+                                    # Use custom labels instead of generic roles
+                                    if message['role'] == 'user':
+                                        speaker_label = user_label
+                                    elif message['role'] == 'assistant':
+                                        speaker_label = assistant_label
+                                    else:
+                                        speaker_label = message['role']
+                                    
+                                    t.write(f"{speaker_label}: {message['content']}\n\n")
                             transcript_path = emergency_file
                             st.success(f"Created emergency transcript: {emergency_file}")
                         except Exception as e:

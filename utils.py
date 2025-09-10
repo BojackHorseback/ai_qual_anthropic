@@ -1,4 +1,4 @@
-#utils.py - Updated with proper UID handling and metadata
+#utils.py - Updated with Response ID integration and custom speaker labels
 
 import streamlit as st
 import hmac
@@ -23,8 +23,16 @@ if "username" not in st.session_state:
 # Initialize UID in session state if not already set
 if "response_id" not in st.session_state:
     query_params = st.query_params
-    # Look for UID parameter only
-    response_id = query_params.get("UID", None)
+    # Look for various UID parameter names
+    possible_uid_names = ["uid", "UID", "user_id", "userId", "participant_id", "ResponseID"]
+    response_id = None
+    
+    for param_name in possible_uid_names:
+        uid_value = query_params.get(param_name)
+        if uid_value is not None:
+            response_id = uid_value[0] if isinstance(uid_value, list) else str(uid_value)
+            break
+    
     st.session_state.response_id = response_id
 
 SCOPES = ['https://www.googleapis.com/auth/drive.file']
@@ -41,7 +49,6 @@ def authenticate_google_drive():
     return build("drive", "v3", credentials=creds)
 
 def upload_file_to_drive(service, file_path, file_name, mimetype='text/plain'):
-    """Upload a file to a specific Google Drive folder."""
     """Upload a file to a specific Google Drive folder."""
     
     file_metadata = {
@@ -60,8 +67,21 @@ def upload_file_to_drive(service, file_path, file_name, mimetype='text/plain'):
 
     return file['id']
 
+def get_speaker_labels():
+    """Determine custom speaker labels based on Response ID and model type."""
+    # Determine user label (Response ID or fallback to 'user')
+    user_label = st.session_state.get('response_id', 'user')
+    if user_label is None or user_label == 'None':
+        user_label = 'user'
+    
+    # Determine AI model label based on config.MODEL
+    api_type = 'openai' if 'gpt' in config.MODEL.lower() else 'anthropic'
+    assistant_label = 'Claude' if api_type == 'anthropic' else 'ChatGPT'
+    
+    return user_label, assistant_label
+
 def save_interview_data_to_drive(transcript_path):
-    """Save interview transcript & timing data to Google Drive."""
+    """Save interview transcript & timing data to Google Drive with custom speaker labels."""
     
     if st.session_state.username is None:
         # Define a fallback username with timestamp if none exists
@@ -78,6 +98,9 @@ def save_interview_data_to_drive(transcript_path):
             # Get current date and time in CT
             current_time = datetime.now(central_tz).strftime("%Y-%m-%d %H:%M:%S %Z")
             
+            # Get custom speaker labels
+            user_label, assistant_label = get_speaker_labels()
+            
             with open(transcript_path, "w") as t:
                 # Add metadata header with complete information
                 t.write("=== INTERVIEW METADATA ===\n")
@@ -85,10 +108,10 @@ def save_interview_data_to_drive(transcript_path):
                 api_type = 'openai' if 'gpt' in config.MODEL.lower() else 'anthropic'
                 t.write(f"API: {api_type}\n")
                 t.write(f"Model: {config.MODEL}\n")
-                t.write(f"Start Time (CT): {st.session_state.get('start_time', 'Unknown')}\n")
+                t.write(f"Start Time (CT): {st.session_state.get('interview_start_time', 'Unknown')}\n")
                 t.write(f"End Time (CT): {current_time}\n")
                 t.write(f"Username: {st.session_state.username}\n")
-                t.write(f"UID: {st.session_state.get('response_id', 'None')}\n")  # Changed from ResponseID to UID
+                t.write(f"UID: {st.session_state.get('response_id', 'None')}\n")
                 t.write(f"Number of Responses: {len([m for m in st.session_state.messages if m['role'] == 'user'])}\n")
                 t.write("========================\n\n")
                 
@@ -96,7 +119,17 @@ def save_interview_data_to_drive(transcript_path):
                 for message in st.session_state.messages:
                     if message.get('role') == 'system':
                         continue
-                    t.write(f"{message['role']}: {message['content']}\n\n")
+                    
+                    # Use custom labels instead of generic role names
+                    if message['role'] == 'user':
+                        speaker_label = user_label
+                    elif message['role'] == 'assistant':
+                        speaker_label = assistant_label
+                    else:
+                        speaker_label = message['role']  # fallback for any other roles
+                    
+                    t.write(f"{speaker_label}: {message['content']}\n\n")
+                    
         except Exception as e:
             st.error(f"Error updating transcript before upload: {str(e)}")
 
@@ -109,7 +142,8 @@ def save_interview_data_to_drive(transcript_path):
         st.error(f"Failed to upload files: {e}")
 
 def save_interview_data(username, transcripts_directory, times_directory=None, file_name_addition_transcript="", file_name_addition_time=""):
-    """Write interview data to disk."""
+    """Write interview data to disk with custom speaker labels."""
+    
     # Ensure username is not None
     if username is None:
         central_tz = pytz.timezone("America/Chicago")
@@ -130,6 +164,9 @@ def save_interview_data(username, transcripts_directory, times_directory=None, f
     # Create proper file paths
     transcript_file = os.path.join(transcripts_directory, f"{username}{file_name_addition_transcript}.txt")
 
+    # Get custom speaker labels
+    user_label, assistant_label = get_speaker_labels()
+
     # Store chat transcript
     try:
         # Define Central Time (CT) timezone
@@ -145,11 +182,11 @@ def save_interview_data(username, transcripts_directory, times_directory=None, f
             t.write("=== INTERVIEW METADATA ===\n")
             t.write(f"API: {api_type}\n")
             t.write(f"Model: {config.MODEL}\n")
-            t.write(f"Start Time (CT): {st.session_state.get('interview_start_time', 'Unknown')}\n")  # Fixed reference
+            t.write(f"Start Time (CT): {st.session_state.get('interview_start_time', 'Unknown')}\n")
             t.write(f"End Time (CT): {current_time}\n")
             t.write(f"Username: {username}\n")
             
-            # Get UID from various possible names
+            # Get UID from various possible names (for backward compatibility)
             uid = (st.session_state.get('response_id') or 
                    st.session_state.get('qualtrics_uid') or 
                    st.session_state.get('qualtrics_response_id') or 
@@ -159,12 +196,23 @@ def save_interview_data(username, transcripts_directory, times_directory=None, f
             t.write(f"Number of Responses: {len([m for m in st.session_state.messages if m['role'] == 'user'])}\n")
             t.write("========================\n\n")
             
-            # Skip the system prompt when saving the transcript
+            # Skip the system prompt when saving the transcript and use custom labels
             for message in st.session_state.messages:
                 if message.get('role') == 'system':
                     continue
-                t.write(f"{message['role']}: {message['content']}\n\n")
+                
+                # Use custom labels instead of generic role names
+                if message['role'] == 'user':
+                    speaker_label = user_label
+                elif message['role'] == 'assistant':
+                    speaker_label = assistant_label
+                else:
+                    speaker_label = message['role']  # fallback
+                
+                t.write(f"{speaker_label}: {message['content']}\n\n")
+        
         return transcript_file
+        
     except Exception as e:
         st.error(f"Error saving transcript: {str(e)}")
         return None

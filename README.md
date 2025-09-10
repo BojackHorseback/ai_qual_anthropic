@@ -1,75 +1,94 @@
-# Code for "Conversations at Scale: Robust AI-led Interviews with a Simple Open-Source Platform" - Claude Version
+# AI-led Interview Platform for Financial Education Research
 
-There are two options to explore the AI-led interviews discussed in the paper.
+**Explanatory Mixed Methods Study of Visualizations in Online Compound Interest Education**
 
-## Option 1: Online notebook
+This platform conducts AI-led qualitative interviews about participants' experiences with visualizations in financial education. Built using Streamlit and Anthropic's Claude API.
 
-To try own ideas for interviews within minutes and without the need to install Python, see https://colab.research.google.com/drive/1sYl2BMiZACrOMlyASuT-bghCwS5FxHSZ (requires to obtain an API key)
+## Study Overview
 
-## Option 2: Full platform
+Participants complete an online compound interest course with embedded visualizations, then engage in an AI-led reflection interview about their learning experience. The interview focuses on:
 
-To install Python and set up the full interview platform locally (takes around 1h from scratch), see the following steps.
+- Learning experiences with visual aids in finance
+- How visuals affect engagement and interest  
+- How visuals support comprehension and self-regulation
+- Personal preferences for different visual formats
+- Practical applications and design insights
 
-The interview platform is built using the library `streamlit` and the Anthropic API.
+## Quick Setup
 
-- Download miniconda from https://docs.anaconda.com/miniconda/miniconda-install/ and install it (skip if `conda` is already installed)
-- Obtain an API key from https://www.anthropic.com/api
-- Download this repository
-- In the repository folder on your computer, create a file `/code/.streamlit/secrets.toml` and add your API key: `API_KEY = "your_anthropic_api_key_here"`
-- Set up Google Drive credentials for file storage (see below)
-- In the config.py, you can select a language model and adjust the interview outline
-- In Terminal (Mac) or Anaconda Prompt (Windows), navigate to the folder `code` with `cd` (if unclear, briefly look up basic Linux command line syntax for navigating to folders)
-- Once in the `code` folder, create the environment from the .yml file by writing `conda env create -f interviewsenv.yml` and confirming with enter (this installs Python and all libraries necessary to run the platform; only needs to be done once)
-- Activate the environment with `conda activate interviews`
-- Start the platform with `streamlit run interview.py`
+### Prerequisites
+- Python 3.11
+- Anthropic API key
+- Google Drive API credentials (for data storage)
 
-## Setting up Google Drive for file storage
+### Installation
+1. Clone this repository
+2. Create `/code/.streamlit/secrets.toml` and add: `API_KEY = "your_anthropic_api_key_here"`
+3. Set up Google Drive credentials (see below)
+4. Install dependencies: `conda env create -f interviewsenv.yml`
+5. Activate environment: `conda activate interviews`
+6. Run: `streamlit run interview.py`
 
-This version automatically saves interview transcripts to Google Drive. To set up:
+## Google Drive Setup
 
-1. Create a Google Cloud Project at https://console.cloud.google.com/
-2. Enable the Google Drive API for your project
-3. Create a service account and download the credentials JSON file
-4. Copy the credentials file to `/etc/secrets/service-account.json` or update the path in `utils.py`
-5. Create a folder in Google Drive and note its ID (the long string in the URL when viewing the folder)
-6. Update the `FOLDER_ID` in `utils.py` with your Google Drive folder ID
-7. Share the folder with the service account email (found in the credentials JSON)
+1. Create a Google Cloud Project and enable Google Drive API
+2. Create a service account and download credentials JSON
+3. Place credentials at `/etc/secrets/service-account.json`
+4. Update `FOLDER_ID` in `utils.py` with your Google Drive folder ID
+5. Share the folder with the service account email
 
 ## Qualtrics Integration
 
-This version captures UID from the Qualtrics URL for tracking:
+The system captures Response IDs from Qualtrics URLs for participant tracking:
 
-### How it works:
-1. When participants click the interview link from Qualtrics, the UID is captured from the URL
-2. The username format becomes: `Anthropic_UID_YYYY-MM-DD_HH-MM-SS`
-3. All files are saved with metadata including the UID
-4. At interview completion, files are saved without displaying any IDs
-
-### URL Parameters:
-The system checks for these parameter names:
-- `uid`
-- `UID`
-- `user_id`
-- `userId`
-- `participant_id`
-
-### File Output:
-- **Filename**: `Anthropic_UID_YYYY-MM-DD_HH-MM-SS.txt`
-- **File Content**: Includes metadata header with:
-  - Username
-  - UID
-  - Save time (Central Time)
-  - Full conversation transcript
-
-## Paper and citation
-
-The paper is available at https://ssrn.com/abstract=4974382 and can be cited with the following bibtex entry:
-
+### URL Format
 ```
-@article{geieckejaravel2024,
-  title={Conversations at Scale: Robust AI-led Interviews with a Simple Open-Source Platform},
-  author={Geiecke, Friedrich and Jaravel, Xavier},
-  url={https://ssrn.com/abstract=4974382},
-  year={2024}
-}
+https://your-app.com/?uid=${e://Field/ResponseID}
 ```
+
+### Data Output
+- **Filename**: `Claude_R_2bKz8vXmPqT9nQ4L_2025-09-09_14-30-45.txt`
+- **Speaker Labels**: Response ID replaces generic "user:" labels
+- **Metadata**: Complete tracking information for research analysis
+
+### Example Transcript
+```
+=== INTERVIEW METADATA ===
+API: anthropic
+Model: claude-3-5-sonnet-20240620
+Username: Claude_R_2bKz8vXmPqT9nQ4L_2025-09-09_14-30-45
+UID: R_2bKz8vXmPqT9nQ4L
+========================
+
+R_2bKz8vXmPqT9nQ4L: I found the bar charts really helpful for understanding compound growth.
+
+Claude: What specifically about those bar charts made them effective for you?
+```
+
+## Interview Protocol
+
+The AI interviewer follows a structured protocol designed for qualitative research:
+
+- **Adaptive questioning**: One question at a time, builds on responses
+- **Balanced coverage**: Ensures all research topics are addressed naturally
+- **Non-directive approach**: Lets participants guide the conversation
+- **Self-regulated learning focus**: Explores engagement, interest, and metacognition
+
+## Research Context
+
+This platform was developed for IRB-approved research (IRB25-0433) investigating how visualizations influence self-regulated learning in financial education. 
+
+**Principal Investigator**: H. Chad Lane, University of Illinois Urbana-Champaign  
+**Student Researcher**: Andrea Pellegrini
+
+## Technical Details
+
+- **Framework**: Streamlit
+- **AI Model**: Anthropic Claude
+- **Data Storage**: Google Drive (secure, encrypted)
+- **Response ID Integration**: Full Qualtrics compatibility
+- **Custom Speaker Labels**: Response IDs replace generic labels
+
+## Attribution
+
+This platform builds upon the open-source interview framework by Geiecke & Jaravel (2024), significantly modified for financial education research:
