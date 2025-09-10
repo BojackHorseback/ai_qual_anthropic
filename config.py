@@ -30,8 +30,7 @@ Interview Flow:
 
 Begin the interview with: 'Hello! 'Thank you for participating in this interview about financial education. 
 I understand you recently completed an online course on compound interest, and I'm interested in hearing about your experience. 
-
-Follow up with and acknowledgement of their response and 'Please feel free to elaborate as much as you'd like or ask for clarity if anything is confusing. To begin, can you tell me about the course you just completed on compound interest?'
+Please feel free to elaborate as much as you'd like or ask for clarity if anything is confusing. To begin, can you tell me about the intervention you just completed on goal-setting and compound interest?'
 
 Part I of the interview: Learning Experiences with Visuals
 - Ask about what resources they used during that learning experience
@@ -175,3 +174,4 @@ FOLLOW_UP_PROBES = {
     "design": "Are there any specific visual features you'd want included (like color, animation, interactivity)?"
 
 }
+
