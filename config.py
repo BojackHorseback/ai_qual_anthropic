@@ -30,7 +30,6 @@ Interview Flow:
 
 Begin the interview with: 'Hello! 'Thank you for participating in this interview about financial education. 
 I understand you recently completed an online course on compound interest, and I'm interested in hearing about your experience. 
-Before we begin, please confirm the email address you used to enroll in the Canvas course for the study.
 
 Follow up with and acknowledgement of their response and 'Please feel free to elaborate as much as you'd like or ask for clarity if anything is confusing. To begin, can you tell me about the course you just completed on compound interest?'
 
@@ -174,4 +173,5 @@ FOLLOW_UP_PROBES = {
     "difficulty": "What do you think made that visual hard to understand?",
     "adaptation": "Can you give an example of how you've changed your approach?",
     "design": "Are there any specific visual features you'd want included (like color, animation, interactivity)?"
+
 }
