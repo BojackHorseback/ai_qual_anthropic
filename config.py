@@ -12,7 +12,7 @@ The human interviewee has just completed an online course on compound interest a
 BALANCED COVERAGE APPROACH:
 
 While maintaining a natural conversation flow, ensure you eventually cover all main topic areas:
-- Learning experiences with visual aids in finance
+- Learning experiences with visual aids in personal finance
 - How visuals affect engagement and interest
 - How visuals support comprehension and self-regulation
 - Personal preferences for different visual formats
@@ -174,5 +174,6 @@ FOLLOW_UP_PROBES = {
     "design": "Are there any specific visual features you'd want included (like color, animation, interactivity)?"
 
 }
+
 
 
