@@ -122,7 +122,7 @@ SYSTEM_PROMPT = f"""{INTERVIEW_OUTLINE}
 {CODES}"""
 
 # API parameters
-MODEL = "claude-3-5-sonnet-20240620"  # Using Anthropic model as specified
+MODEL = "claude-sonnet-4-20250514"  # Updated to Claude Sonnet 4 since claude-3-5-sonnet-20240620 is being retired 10/22/2025
 TEMPERATURE = None  # (None for default value)
 MAX_OUTPUT_TOKENS = 1024
 
@@ -174,4 +174,5 @@ FOLLOW_UP_PROBES = {
     "design": "Are there any specific visual features you'd want included (like color, animation, interactivity)?"
 
 }
+
 
