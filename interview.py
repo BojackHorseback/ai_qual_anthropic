@@ -1,4 +1,4 @@
-#interview.py - Anthropic (Saving to Google Drive) - Response ID Integration Fixed
+#interview.py - Anthropic (Saving to Google Drive) - Response ID Integration + Qualtrics API Integration
 
 import streamlit as st
 import time
@@ -11,10 +11,75 @@ from utils import (
 import os
 import config
 import pytz
+import requests  # <<<< CHANGE 1: Added for Qualtrics API calls
 
 from datetime import datetime
 import anthropic
 api = "anthropic"
+
+# ===== CHANGE 2: QUALTRICS INTEGRATION START =====
+# Load Qualtrics credentials from environment
+QUALTRICS_API_TOKEN = os.environ.get('QUALTRICS_API_TOKEN')
+QUALTRICS_SURVEY_ID = os.environ.get('QUALTRICS_SURVEY_ID')
+QUALTRICS_DATACENTER = os.environ.get('QUALTRICS_DATACENTER')
+
+# Define timezone for timestamps
+central_tz = pytz.timezone("America/Chicago")
+
+def mark_chatbot_complete(response_id):
+    """
+    Notify Qualtrics when interview completes.
+    Logs all events but shows nothing to user.
+    Check Render logs and transcript metadata for diagnostics.
+    """
+    # Log attempt
+    print(f"[QUALTRICS] Attempting to mark completion for Response ID: {response_id}")
+    
+    # Check credentials (log but don't show user)
+    if not all([QUALTRICS_API_TOKEN, QUALTRICS_SURVEY_ID, QUALTRICS_DATACENTER]):
+        print("[QUALTRICS ERROR] Missing credentials in Render environment variables")
+        print(f"[QUALTRICS DEBUG] Token exists: {bool(QUALTRICS_API_TOKEN)}")
+        print(f"[QUALTRICS DEBUG] Survey ID exists: {bool(QUALTRICS_SURVEY_ID)}")
+        print(f"[QUALTRICS DEBUG] Datacenter exists: {bool(QUALTRICS_DATACENTER)}")
+        # Store failure in session state for transcript metadata
+        st.session_state.qualtrics_status = "ERROR: Missing credentials"
+        return False
+    
+    # Check Response ID (log but don't show user)
+    if not response_id or response_id in ['NoUID', 'None', None]:
+        print(f"[QUALTRICS ERROR] Invalid Response ID: {response_id}")
+        st.session_state.qualtrics_status = f"ERROR: Invalid Response ID ({response_id})"
+        return False
+    
+    # Attempt API call
+    url = f"https://{QUALTRICS_DATACENTER}.qualtrics.com/API/v3/surveys/{QUALTRICS_SURVEY_ID}/responses/{response_id}"
+    
+    try:
+        print(f"[QUALTRICS] Making API call to: {QUALTRICS_DATACENTER}.qualtrics.com")
+        response = requests.put(
+            url,
+            headers={"X-API-TOKEN": QUALTRICS_API_TOKEN, "Content-Type": "application/json"},
+            json={"embeddedData": {
+                "ChatbotCompleted": "1",
+                "ChatbotCompletionTimestamp": datetime.now(central_tz).isoformat()
+            }}
+        )
+        response.raise_for_status()
+        print(f"[QUALTRICS SUCCESS] ✓ Response ID {response_id} marked complete")
+        print(f"[QUALTRICS DEBUG] API Response Code: {response.status_code}")
+        # Store success in session state for transcript metadata
+        st.session_state.qualtrics_status = "SUCCESS: Notified"
+        return True
+        
+    except requests.exceptions.RequestException as e:
+        print(f"[QUALTRICS ERROR] ✗ API call failed for Response ID {response_id}")
+        print(f"[QUALTRICS DEBUG] Error details: {str(e)}")
+        if hasattr(e.response, 'text'):
+            print(f"[QUALTRICS DEBUG] Response body: {e.response.text}")
+        # Store failure in session state for transcript metadata
+        st.session_state.qualtrics_status = f"ERROR: {str(e)}"
+        return False
+# ===== CHANGE 2: QUALTRICS INTEGRATION END =====
 
 # Capture UID from Qualtrics URL parameter - FIXED VERSION
 try:
@@ -46,7 +111,7 @@ except Exception as e:
 st.set_page_config(page_title="Interview - Anthropic", page_icon=config.AVATAR_INTERVIEWER)
 
 # Define Central Time (CT) timezone
-central_tz = pytz.timezone("America/Chicago")
+# <<<< NOTE: Moved to Qualtrics section above (line 24) to avoid duplicate definition
 
 # Get current date and time in CT
 current_datetime = datetime.now(central_tz).strftime("%Y-%m-%d_%H-%M-%S")
@@ -211,6 +276,12 @@ if st.session_state.interview_active:
                     st.session_state.messages.append({"role": "assistant", "content": display_message})
                     st.session_state.interview_active = False
                     st.markdown(display_message)
+
+                    # ===== CHANGE 3: NOTIFY QUALTRICS OF COMPLETION =====
+                    # Silently attempt to notify Qualtrics (logs to Render, not visible to user)
+                    response_id = st.session_state.get('response_id')
+                    mark_chatbot_complete(response_id)  # Always call, even if None (for logging)
+                    # ===== CHANGE 3: END =====
 
                     final_transcript_stored = False
                     retries = 0

@@ -1,4 +1,4 @@
-#utils.py - Updated with Response ID integration and custom speaker labels
+#utils.py - Updated with Response ID integration, custom speaker labels, and Qualtrics status logging
 
 import streamlit as st
 import hmac
@@ -113,6 +113,9 @@ def save_interview_data_to_drive(transcript_path):
                 t.write(f"Username: {st.session_state.username}\n")
                 t.write(f"UID: {st.session_state.get('response_id', 'None')}\n")
                 t.write(f"Number of Responses: {len([m for m in st.session_state.messages if m['role'] == 'user'])}\n")
+                # ===== CHANGE 4: ADD QUALTRICS STATUS TO METADATA =====
+                t.write(f"Qualtrics Notification Status: {st.session_state.get('qualtrics_status', 'Not attempted')}\n")
+                # ===== CHANGE 4: END =====
                 t.write("========================\n\n")
                 
                 # Skip the system prompt (first message) when saving the transcript
@@ -194,6 +197,9 @@ def save_interview_data(username, transcripts_directory, times_directory=None, f
             t.write(f"UID: {uid}\n")
             
             t.write(f"Number of Responses: {len([m for m in st.session_state.messages if m['role'] == 'user'])}\n")
+            # ===== CHANGE 4: ADD QUALTRICS STATUS TO METADATA =====
+            t.write(f"Qualtrics Notification Status: {st.session_state.get('qualtrics_status', 'Not attempted')}\n")
+            # ===== CHANGE 4: END =====
             t.write("========================\n\n")
             
             # Skip the system prompt when saving the transcript and use custom labels
