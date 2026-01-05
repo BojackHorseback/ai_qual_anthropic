@@ -12,10 +12,42 @@ import os
 import config
 import pytz
 import requests  # <<<< CHANGE 1: Added for Qualtrics API calls
+import re  # <<<< NEW: For single question enforcement
 
 from datetime import datetime
 import anthropic
 api = "anthropic"
+
+# ===== NEW: SINGLE QUESTION ENFORCEMENT =====
+def count_questions(text):
+    """Count the number of questions in a text response"""
+    question_marks = text.count('?')
+    
+    # Detect question patterns without question marks
+    question_patterns = [
+        r'\bcan you tell me\b',
+        r'\bcan you describe\b',
+        r'\bwhat (?:do|did|does|is|are|was|were)\b',
+        r'\bhow (?:do|did|does|is|are|was|were)\b',
+        r'\bwhy (?:do|did|does)\b',
+        r'\bcould you\b',
+        r'\bwould you\b'
+    ]
+    
+    pattern_count = sum(1 for pattern in question_patterns if re.search(pattern, text.lower()))
+    return max(question_marks, pattern_count)
+
+def enforce_single_question(response_text):
+    """Force response to contain only one question by truncating after first question"""
+    num_questions = count_questions(response_text)
+    
+    if num_questions > 1:
+        parts = response_text.split('?')
+        if len(parts) > 1:
+            return parts[0] + '?'
+    
+    return response_text
+# ===== END SINGLE QUESTION ENFORCEMENT =====
 
 # ===== CHANGE 2: QUALTRICS INTEGRATION START =====
 # Load Qualtrics credentials from environment
@@ -103,8 +135,17 @@ try:
     # Store in session state with consistent naming
     st.session_state.response_id = captured_response_id
     
+    # ===== NEW: CAPTURE RETURN URL =====
+    return_url = query_params.get("return_url")
+    if return_url is not None:
+        st.session_state.return_url = return_url[0] if isinstance(return_url, list) else str(return_url)
+    else:
+        st.session_state.return_url = None
+    # ===== END CAPTURE RETURN URL =====
+    
 except Exception as e:
     st.session_state.response_id = None
+    st.session_state.return_url = None
     st.error(f"Error capturing Response ID: {str(e)}")
 
 # Set page title and icon
@@ -257,6 +298,12 @@ if st.session_state.interview_active:
             except Exception as e:
                 st.error(f"API Error: {str(e)}")
                 message_interviewer = "Sorry, there was an error. Your response was saved, but we couldn't generate a reply."
+            
+            # ===== NEW: ENFORCE SINGLE QUESTION =====
+            # Apply enforcement BEFORE displaying or saving the message
+            if not any(code in message_interviewer for code in config.CLOSING_MESSAGES.keys()):
+                message_interviewer = enforce_single_question(message_interviewer)
+            # ===== END ENFORCEMENT =====
                 
             if not any(code in message_interviewer for code in config.CLOSING_MESSAGES.keys()):
                 message_placeholder.markdown(message_interviewer)
@@ -276,6 +323,29 @@ if st.session_state.interview_active:
                     st.session_state.messages.append({"role": "assistant", "content": display_message})
                     st.session_state.interview_active = False
                     st.markdown(display_message)
+                    
+                    # ===== NEW: AUTO-REDIRECT TO QUALTRICS =====
+                    return_url = st.session_state.get('return_url')
+                    if return_url:
+                        # Build completion URL with ChatbotCompleted flag
+                        separator = '&' if '?' in return_url else '?'
+                        completion_url = f"{return_url}{separator}ChatbotCompleted=1"
+                        
+                        # Display redirect message and auto-redirect after 3 seconds
+                        st.markdown("---")
+                        st.success("🎉 Interview completed successfully!")
+                        st.markdown(f"""
+                        <p style="text-align: center; font-size: 16px; margin-top: 20px;">
+                        <strong>Returning you to the survey...</strong><br>
+                        You will be redirected in 3 seconds.
+                        </p>
+                        <meta http-equiv="refresh" content="3;url={completion_url}">
+                        <p style="text-align: center; margin-top: 10px;">
+                        If you are not redirected automatically, 
+                        <a href="{completion_url}" style="color: #0066cc; font-weight: bold;">click here</a>.
+                        </p>
+                        """, unsafe_allow_html=True)
+                    # ===== END AUTO-REDIRECT =====
 
                     # ===== CHANGE 3: NOTIFY QUALTRICS OF COMPLETION =====
                     # Silently attempt to notify Qualtrics (logs to Render, not visible to user)
