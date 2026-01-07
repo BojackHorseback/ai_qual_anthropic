@@ -67,15 +67,27 @@ def extract_response_id_from_filename(filename):
 def get_google_drive_service():
     """Initialize Google Drive API service"""
     try:
-        if GDRIVE_CREDENTIALS_JSON:
-            # Load credentials from environment variable (JSON string)
+        # Try Render secret file first
+        secret_file_path = '/etc/secrets/service-account.json'
+        
+        if os.path.exists(secret_file_path):
+            # Load from Render secret file
+            log("Using credentials from Render secret file")
+            credentials = Credentials.from_service_account_file(
+                secret_file_path,
+                scopes=['https://www.googleapis.com/auth/drive.readonly']
+            )
+        elif GDRIVE_CREDENTIALS_JSON:
+            # Fallback: Load from environment variable (JSON string)
+            log("Using credentials from environment variable")
             creds_dict = json.loads(GDRIVE_CREDENTIALS_JSON)
             credentials = Credentials.from_service_account_info(
                 creds_dict,
                 scopes=['https://www.googleapis.com/auth/drive.readonly']
             )
         else:
-            # Load from file (for local testing)
+            # Fallback: Load from local file (for local testing)
+            log("Using credentials from local file")
             credentials = Credentials.from_service_account_file(
                 'service-account-key.json',
                 scopes=['https://www.googleapis.com/auth/drive.readonly']
