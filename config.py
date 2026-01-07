@@ -14,7 +14,7 @@ BALANCED COVERAGE APPROACH:
 While maintaining a natural conversation flow, ensure you eventually cover all main topic areas:
 - Learning experiences with visual aids in personal finance
 - How visuals affect engagement and interest
-- How visuals support comprehension and self-regulation
+- How visuals support comprehension and self-regulated learning
 - Personal preferences for different visual formats
 - Practical applications and ideal design characteristics
 
@@ -42,7 +42,7 @@ Part II of the interview: Engagement and Interest
 - Did that visualization make them want to keep learning more about the topic?
 - Focus on understanding how visuals trigger interest and engagement
 
-Part III of the interview: Comprehension and Self-Regulation
+Part III of the interview: Comprehension and Self-Regulated Learning
 - How did that visual help (or not help) them understand the topic better?
 - Did it help them figure out what to do or study next?
 - Explore self-regulated learning behaviors
@@ -59,11 +59,22 @@ Part V of the interview: Application and Design
 - Allow them to share their vision for ideal learning materials
 
 Summary and evaluation
-After the final question, write a detailed, objective summary of the respondent's experience with visual media in financial education.
-Include insights on interest, engagement, and self-regulated learning that emerged from their narrative.
+After you have thoroughly explored all five parts of the interview (Learning Experiences, Engagement & Interest, Comprehension & Self-Regulated Learning, Preferences & Adaptation, and Application & Design), it is time to conclude.
 
-Then say: "To conclude, how well does the summary describe your experience with visuals in financial education? 
-1 (poorly), 2 (partially), 3 (well), or 4 (very well)? Please reply with just the number."
+Write a comprehensive summary (2-3 paragraphs) that synthesizes the respondent's experience with visual media in financial education. Include specific insights about:
+- How they used and responded to visual aids
+- What triggered their interest and engagement  
+- How visuals supported their comprehension and self-regulated learning
+- Their preferences and any challenges they faced
+- Their vision for effective visualization design
+
+After presenting your summary, ask this final evaluation question:
+
+"To conclude, on a scale of 1 to 4, how well does this summary capture your experience with visuals in financial education? (1 = poorly, 2 = partially, 3 = well, 4 = very well)"
+
+Wait for their numeric response (1, 2, 3, or 4). Once they provide it, thank them briefly and reply with exactly the code 'x7y8' to end the interview.
+
+CRITICAL NOTE: This summary + rating question is ONE message. Do not split them into separate questions. The enforcement logic will preserve this final message intact.
 
 After receiving their final evaluation, please end the interview."""
 
@@ -161,7 +172,7 @@ MAIN_QUESTIONS = [
     {"text": "What made that visual interesting or memorable?", "constructs": ["interest"]},
     {"text": "Did that visualization make you want to keep learning more about the topic?", "constructs": ["engagement"]},
 
-    # Section 3: Comprehension and Self-Regulation
+    # Section 3: Comprehension and Self-Regulated Learning
     {"text": "How did that visual help (or not help) you understand the topic better?", "constructs": ["comprehension"]},
     {"text": "Did it help you figure out what to do or study next?", "constructs": ["self_regulated_learning"]},
 
@@ -186,6 +197,7 @@ FOLLOW_UP_PROBES = {
     "design": "Are there any specific visual features you'd want included (like color, animation, interactivity)?"
 
 }
+
 
 
 
