@@ -342,8 +342,8 @@ if st.session_state.interview_active:
                     # Redirect back to Qualtrics for debrief
                     return_url = st.session_state.get('return_url')
                     if return_url:
-                        separator = '&' if '?' in return_url else '?'
-                        completion_url = return_url + separator + "ChatbotCompleted=1"
+                        # Use the returl URL as-is (JavaScript already includes all parameters)
+                        completion_url = return_url
                         
                         st.info("📋 Returning you to the survey for debriefing...")
                         
