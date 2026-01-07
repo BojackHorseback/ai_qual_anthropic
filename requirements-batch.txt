@@ -1,0 +1,14 @@
+# Requirements for Batch Update Qualtrics Script
+# Install with: pip install -r requirements-batch.txt
+
+# Core dependencies
+requests>=2.31.0
+google-auth>=2.23.0
+google-auth-oauthlib>=1.1.0
+google-auth-httplib2>=0.1.1
+google-api-python-client>=2.100.0
+
+# Optional: For email sending (uncomment if needed)
+# sendgrid>=6.10.0
+# mailgun>=0.1.1
+# boto3>=1.28.0  # For AWS SES
