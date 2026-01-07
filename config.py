@@ -105,14 +105,14 @@ If you need to ask a follow-up, wait for their answer to your first question bef
 - Do not engage in conversations that are unrelated to the purpose of this interview.
 
 Examples of proper questioning:
-✓ "What was it about that visual that stood out to you?"
-✓ "How did that make you feel about the topic?" 
-✓ "What made that visual effective for you?"
-✓ "Can you describe how it helped you stay engaged?"
+âœ“ "What was it about that visual that stood out to you?"
+âœ“ "How did that make you feel about the topic?" 
+âœ“ "What made that visual effective for you?"
+âœ“ "Can you describe how it helped you stay engaged?"
 
 Examples to avoid:
-✗ "Did the course graphs help you and were they also engaging?"
-✗ "What worked and what didn't?"
+âœ— "Did the course graphs help you and were they also engaging?"
+âœ— "What worked and what didn't?"
 
 TOPIC COVERAGE BALANCING:
 - Ensure you touch on all key areas from the interview outline, but do so organically
@@ -201,3 +201,43 @@ FOLLOW_UP_PROBES = {
 
 
 
+
+# Debriefing Content
+DEBRIEFING_TITLE = "Debriefing"
+
+DEBRIEFING_INTRO = """**Research Participant:**
+
+During this study, you were asked to complete an online course about compound interest that included a goal-setting activity, educational content, interactive visualizations, and a reflection interview with an AI-enabled Chatbot about your learning experience. You were told that the purpose of the study was to test the effectiveness of visual media in teaching compound interest to improve financial education program design."""
+
+DEBRIEFING_STUDY_DESIGN = """### The Complete Study Design
+
+This study tested how different approaches to goal-setting with visualizations affect learning about compound interest. You were randomly assigned to one of three groups:
+
+- **Approach-focused group:** Content emphasizing the benefits and growth potential of compound interest.
+- **Avoidance-focused group:** Content highlighting potential losses from not understanding compound interest.
+- **Neutral group:** Content focused on outcomes without emotional language.
+
+All groups learned the same core compound interest concepts and saw the same visuals. The difference was how the textual information was presented in the goal-setting activity."""
+
+DEBRIEFING_WHY_NOT_TOLD = """### Why We Didn't Tell You This Initially
+
+We did not provide complete information about the randomization and specific comparisons being made because knowing these details might have influenced how you interacted with the visualizations or how you responded during the reflection activity. For the research to provide valid insights about which approaches work best, it was important that you engaged with the materials without being influenced by knowledge of what was being compared."""
+
+DEBRIEFING_QUESTIONS = """### Questions or Concerns
+
+If you have any questions, concerns, or complaints about this study, or if you feel you have been harmed by this research, please contact:
+
+**The Principal Investigator, H Chad Lane**, at [hclane@illinois.edu](mailto:hclane@illinois.edu?subject=Viz%20in%20SRL%20Study%20-%20Debriefing%20Question)  
+or **the Study Contact, Andrea Pellegrini**, at [apelleg3@illinois.edu](mailto:apelleg3@illinois.edu?subject=Viz%20in%20SRL%20Study%20-%20Debriefing%20Question)"""
+
+DEBRIEFING_WITHDRAWAL = """#### Reminder of Your Right to Withdraw
+
+We would like to remind you that your participation in this research is completely voluntary. It is up to you to decide whether or not to continue participating in this study. If you decide to withdraw from the research at this time, we will destroy any data collected about you during this study. The decision to withdraw from this research will involve no penalty or loss of any benefits to which you are otherwise entitled. This will not affect your relationship with the investigator.
+
+**If you would like to withdraw from this study, please let the investigator know by March 1, 2025.** After this date, the data cleaning process should be complete, and any personal information connecting you to the data will be completely deleted making it difficult to remove data associated with your participation."""
+
+DEBRIEFING_IRB = """**Institutional Review Board:** If you have any questions about your rights as a research subject, including concerns, complaints, or to offer input, you may call the Office for the Protection of Research Subjects (OPRS) at 217-333-2670 or e-mail OPRS at [irb@illinois.edu](mailto:irb@illinois.edu).
+
+If you would like to complete a brief survey to provide OPRS feedback about your experiences as a research participant, please complete the [OPRS Online Feedback Form](https://redcap.healthinstitute.illinois.edu/surveys/?s=47X9T4NE4X) or through a link on the OPRS website: [https://oprs.research.illinois.edu/](https://oprs.research.illinois.edu/). You will have the option to provide feedback or concerns anonymously or you may provide your name and contact information for follow-up purposes."""
+
+DEBRIEFING_CLOSING = """Again, please accept our appreciation for your participation in this study."""

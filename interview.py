@@ -97,14 +97,14 @@ def mark_chatbot_complete(response_id):
             }}
         )
         response.raise_for_status()
-        print(f"[QUALTRICS SUCCESS] ✓ Response ID {response_id} marked complete")
+        print(f"[QUALTRICS SUCCESS] âœ“ Response ID {response_id} marked complete")
         print(f"[QUALTRICS DEBUG] API Response Code: {response.status_code}")
         # Store success in session state for transcript metadata
         st.session_state.qualtrics_status = "SUCCESS: Notified"
         return True
         
     except requests.exceptions.RequestException as e:
-        print(f"[QUALTRICS ERROR] ✗ API call failed for Response ID {response_id}")
+        print(f"[QUALTRICS ERROR] âœ— API call failed for Response ID {response_id}")
         print(f"[QUALTRICS DEBUG] Error details: {str(e)}")
         if hasattr(e.response, 'text'):
             print(f"[QUALTRICS DEBUG] Response body: {e.response.text}")
@@ -242,7 +242,7 @@ if not st.session_state.messages:
                     for text_delta in stream.text_stream:
                         if text_delta:
                             message_interviewer += text_delta
-                        message_placeholder.markdown(message_interviewer + "▌")
+                        message_placeholder.markdown(message_interviewer + "â–Œ")
                 message_placeholder.markdown(message_interviewer)
             except Exception as e:
                 st.error(f"API Error: {str(e)}")
@@ -280,7 +280,7 @@ if st.session_state.interview_active:
                         if text_delta:
                             message_interviewer += text_delta
                         if len(message_interviewer) > 5:
-                            message_placeholder.markdown(message_interviewer + "▌")
+                            message_placeholder.markdown(message_interviewer + "â–Œ")
                         if any(code in message_interviewer for code in config.CLOSING_MESSAGES.keys()):
                             message_placeholder.empty()
                             break
@@ -291,7 +291,7 @@ if st.session_state.interview_active:
                             if text_delta:
                                 message_interviewer += text_delta
                             if len(message_interviewer) > 5:
-                                message_placeholder.markdown(message_interviewer + "▌")
+                                message_placeholder.markdown(message_interviewer + "â–Œ")
                             if any(code in message_interviewer for code in config.CLOSING_MESSAGES.keys()):
                                 message_placeholder.empty()
                                 break
@@ -335,28 +335,29 @@ if st.session_state.interview_active:
                     st.session_state.interview_active = False
                     st.markdown(display_message)
                     
-                    # ===== AUTO-REDIRECT BACK TO QUALTRICS =====
+                    # ===== DISPLAY DEBRIEFING =====
                     st.markdown("---")
                     st.success("🎉 Interview completed successfully!")
                     
-                    # Redirect back to Qualtrics for debrief
-                    return_url = st.session_state.get('return_url')
-                    if return_url:
-                        # Use the returl URL as-is (JavaScript already includes all parameters)
-                        completion_url = return_url
-                        
-                        st.info("📋 Returning you to the survey for debriefing...")
-                        
-                        # Auto-redirect after 3 seconds
-                        redirect_html = f'<meta http-equiv="refresh" content="3;url={completion_url}">'
-                        st.markdown(redirect_html, unsafe_allow_html=True)
-                        
-                        # Manual link as backup
-                        manual_link = f'<p style="text-align: center; margin-top: 10px;">If you are not automatically redirected, <a href="{completion_url}" style="color: #0066cc; font-weight: bold;">click here to return to the survey</a>.</p>'
-                        st.markdown(manual_link, unsafe_allow_html=True)
-                    else:
-                        st.info("✅ You may now close this window. Your participation is complete.")
-                    # ===== END AUTO-REDIRECT =====
+                    # Display debriefing information
+                    st.markdown("---")
+                    st.header(config.DEBRIEFING_TITLE, divider="blue")
+                    
+                    st.markdown(config.DEBRIEFING_INTRO)
+                    st.markdown(config.DEBRIEFING_STUDY_DESIGN)
+                    st.markdown(config.DEBRIEFING_WHY_NOT_TOLD)
+                    st.markdown(config.DEBRIEFING_QUESTIONS)
+                    
+                    # Highlighted withdrawal section
+                    with st.container():
+                        st.info("📋 " + config.DEBRIEFING_WITHDRAWAL)
+                    
+                    st.markdown(config.DEBRIEFING_IRB)
+                    st.markdown(config.DEBRIEFING_CLOSING)
+                    
+                    st.markdown("---")
+                    st.info("✅ You may now close this window. Your participation is complete.")
+                    # ===== END DEBRIEFING DISPLAY =====
                     
                     # ===== CHANGE 3: NOTIFY QUALTRICS OF COMPLETION =====
                     # Silently attempt to notify Qualtrics (logs to Render, not visible to user)
