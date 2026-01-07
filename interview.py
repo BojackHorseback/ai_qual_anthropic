@@ -301,8 +301,19 @@ if st.session_state.interview_active:
             
             # ===== NEW: ENFORCE SINGLE QUESTION =====
             # Apply enforcement BEFORE displaying or saving the message
+            # EXCEPT for the final summary/rating question which must stay intact
             if not any(code in message_interviewer for code in config.CLOSING_MESSAGES.keys()):
-                message_interviewer = enforce_single_question(message_interviewer)
+                # Don't enforce if this is the summary + rating question
+                # Check for key phrases that indicate we're in the conclusion
+                is_conclusion = (
+                    "To conclude" in message_interviewer or
+                    "how well does" in message_interviewer.lower() or
+                    "1 = poorly" in message_interviewer or
+                    "scale of 1" in message_interviewer.lower()
+                )
+    
+                if not is_conclusion:
+                    message_interviewer = enforce_single_question(message_interviewer)
             # ===== END ENFORCEMENT =====
                 
             if not any(code in message_interviewer for code in config.CLOSING_MESSAGES.keys()):
