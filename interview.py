@@ -335,28 +335,79 @@ if st.session_state.interview_active:
                     st.session_state.interview_active = False
                     st.markdown(display_message)
                     
-                    # ===== NEW: AUTO-REDIRECT TO QUALTRICS =====
+                    # ===== SHOW DEBRIEF AND AUTO-REDIRECT TO QUALTRICS =====
+                    st.markdown("---")
+                    st.success("✅ Interview Complete!")
+                    
+                    # IRB-required debrief language
+                    st.markdown("""
+                    <div style="line-height: 1.6; color: #333;">
+                    <h1 style="color: #13294B; border-bottom: 4px solid #13294B; padding-bottom: 12px; margin-bottom: 25px; margin-top: 20px;">Debriefing</h1>
+
+                    <p style="margin-bottom: 20px;"><strong>Research Participant:</strong></p>
+
+                    <p style="margin-bottom: 20px;">During this study, you were asked to complete an online course about compound interest that included a goal-setting activity, educational content, interactive visualizations, and a reflection interview with an AI-enabled Chatbot about your learning experience. You were told that the purpose of the study was to test the effectiveness of visual media in teaching compound interest to improve financial education program design.</p>
+
+                    <h2 style="color: #13294B; border-bottom: 3px solid #13294B; padding-bottom: 10px; margin-bottom: 15px; margin-top: 35px;">The Complete Study Design</h2>
+
+                    <p style="margin-bottom: 15px;">This study tested how different approaches to goal-setting with visualizations affect learning about compound interest. You were randomly assigned to one of three groups:</p>
+
+                    <ul style="margin: 0 0 30px 0; padding-left: 20px;">
+                        <li style="margin-bottom: 10px;"><strong>Approach-focused group:</strong> Content emphasizing the benefits and growth potential of compound interest.</li>
+                        <li style="margin-bottom: 10px;"><strong>Avoidance-focused group:</strong> Content highlighting potential losses from not understanding compound interest.</li>
+                        <li style="margin-bottom: 10px;"><strong>Neutral group:</strong> Content focused on outcomes without emotional language.</li>
+                    </ul>
+
+                    <p style="margin-bottom: 30px;">All groups learned the same core compound interest concepts and saw the same visuals. The difference was how the textual information was presented in the goal-setting activity.</p>
+
+                    <h2 style="color: #13294B; border-bottom: 3px solid #13294B; padding-bottom: 10px; margin-bottom: 15px; margin-top: 35px;">Why We Didn't Tell You This Initially</h2>
+
+                    <p style="margin-bottom: 30px;">We did not provide complete information about the randomization and specific comparisons being made because knowing these details might have influenced how you interacted with the visualizations or how you responded during the reflection activity. For the research to provide valid insights about which approaches work best, it was important that you engaged with the materials without being influenced by knowledge of what was being compared.</p>
+
+                    <h2 style="color: #13294B; border-bottom: 3px solid #13294B; padding-bottom: 10px; margin-bottom: 15px; margin-top: 35px;">Questions or Concerns</h2>
+
+                    <p style="margin-bottom: 15px;">If you have any questions, concerns, or complaints about this study, or if you feel you have been harmed by this research, please contact:</p>
+
+                    <p style="margin-bottom: 25px;">The Principal Investigator, H Chad Lane, at <a style="color: #1B75BB; text-decoration: none;" href="mailto:hclane@illinois.edu?subject=Viz%20in%20SRL%20Study%20-%20Debriefing%20Question">hclane@illinois.edu</a><br>
+                    or the Study Contact, Andrea Pellegrini, at <a style="color: #1B75BB; text-decoration: none;" href="mailto:apelleg3@uillinois.edu?subject=Viz%20in%20SRL%20Study%20-%20Debriefing%20Question">apelleg3@uillinois.edu</a></p>
+
+                    <h3 style="color: #13294B; margin: 30px 0 15px 0;">Reminder of Your Right to Withdraw</h3>
+
+                    <div style="background: #E8F4F8; border-left: 4px solid #1B75BB; padding: 20px; border-radius: 4px; margin-bottom: 25px;">
+                    <p style="margin-bottom: 15px;">We would like to remind you that your participation in this research is completely voluntary. It is up to you to decide whether or not to continue participating in this study. If you decide to withdraw from the research at this time, we will destroy any data collected about you during this study. The decision to withdraw from this research will involve no penalty or loss of any benefits to which you are otherwise entitled. This will not affect your relationship with the investigator.</p>
+
+                    <p style="margin: 0;"><strong>If you would like to withdraw from this study, please let the investigator know by March 1, 2025.</strong> After this date, the data cleaning process should be complete, and any personal information connecting you to the data will be completely deleted making it difficult to remove data associated with your participation.</p>
+                    </div>
+
+                    <p style="margin-bottom: 15px;"><strong>Institutional Review Board:</strong> If you have any questions about your rights as a research subject, including concerns, complaints, or to offer input, you may call the Office for the Protection of Research Subjects (OPRS) at 217-333-2670 or e-mail OPRS at <a style="color: #1B75BB; text-decoration: none;" href="mailto:irb@illinois.edu">irb@illinois.edu</a>.</p>
+
+                    <p style="margin-bottom: 25px;">If you would like to complete a brief survey to provide OPRS feedback about your experiences as a research participant, please complete the <a target="_blank" style="color: #1B75BB; text-decoration: none;" rel="noopener" href="https://redcap.healthinstitute.illinois.edu/surveys/?s=47X9T4NE4X">OPRS Online Feedback Form</a> or through a link on the OPRS website: <a target="_blank" style="color: #1B75BB; text-decoration: none;" rel="noopener" href="https://oprs.research.illinois.edu/">https://oprs.research.illinois.edu/</a>. You will have the option to provide feedback or concerns anonymously or you may provide your name and contact information for follow-up purposes.</p>
+
+                    <p style="margin-bottom: 20px;">Again, please accept our appreciation for your participation in this study.</p>
+                    </div>
+                    """, unsafe_allow_html=True)
+                    
+                    st.markdown("---")
+                    
+                    # Now redirect back to Qualtrics to close the survey
                     return_url = st.session_state.get('return_url')
                     if return_url:
-                        # Build completion URL with ChatbotCompleted flag
                         separator = '&' if '?' in return_url else '?'
-                        completion_url = f"{return_url}{separator}ChatbotCompleted=1"
+                        completion_url = return_url + separator + "ChatbotCompleted=1"
                         
-                        # Display redirect message and auto-redirect after 3 seconds
-                        st.markdown("---")
-                        st.success("🎉 Interview completed successfully!")
-                        st.markdown(f"""
-                        <p style="text-align: center; font-size: 16px; margin-top: 20px;">
-                        <strong>Returning you to the survey...</strong><br>
-                        You will be redirected in 3 seconds.
-                        </p>
-                        <meta http-equiv="refresh" content="3;url={completion_url}">
-                        <p style="text-align: center; margin-top: 10px;">
-                        If you are not redirected automatically, 
-                        <a href="{completion_url}" style="color: #0066cc; font-weight: bold;">click here</a>.
-                        </p>
-                        """, unsafe_allow_html=True)
-                    # ===== END AUTO-REDIRECT =====
+                        st.info("📋 Thank you for reading the debriefing. You will be redirected back to close the survey in 10 seconds...")
+                        
+                        # Auto-redirect using meta refresh
+                        redirect_html = f'<meta http-equiv="refresh" content="10;url={completion_url}">'
+                        st.markdown(redirect_html, unsafe_allow_html=True)
+                        
+                        # Manual link as backup
+                        manual_link = f'<p style="text-align: center; margin-top: 10px;">If you are not automatically redirected, <a href="{completion_url}" style="color: #0066cc; font-weight: bold;">click here to complete the survey</a>.</p>'
+                        st.markdown(manual_link, unsafe_allow_html=True)
+                    else:
+                        st.info("✅ You may now close this window. Your participation is complete.")
+                        
+                    # ===== END DEBRIEF AND AUTO-REDIRECT =====
 
                     # ===== CHANGE 3: NOTIFY QUALTRICS OF COMPLETION =====
                     # Silently attempt to notify Qualtrics (logs to Render, not visible to user)
